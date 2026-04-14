@@ -1,8 +1,5 @@
 // npx vitest run src/api/providers/__tests__/sambanova.spec.ts
 
-// Mock vscode first to avoid import errors
-vitest.mock("vscode", () => ({}))
-
 import OpenAI from "openai"
 import { Anthropic } from "@anthropic-ai/sdk"
 
@@ -113,7 +110,7 @@ describe("SambaNovaHandler", () => {
 		const firstChunk = await stream.next()
 
 		expect(firstChunk.done).toBe(false)
-		expect(firstChunk.value).toEqual({ type: "usage", inputTokens: 10, outputTokens: 20 })
+		expect(firstChunk.value).toMatchObject({ type: "usage", inputTokens: 10, outputTokens: 20 })
 	})
 
 	it("createMessage should pass correct parameters to SambaNova client", async () => {
@@ -144,6 +141,7 @@ describe("SambaNovaHandler", () => {
 			expect.objectContaining({
 				model: modelId,
 				max_tokens: modelInfo.maxTokens,
+				temperature: 0.7,
 				messages: expect.arrayContaining([{ role: "system", content: systemPrompt }]),
 				stream: true,
 				stream_options: { include_usage: true },

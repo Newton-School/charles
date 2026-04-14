@@ -9,11 +9,12 @@ class TelemetryClient {
 	public updateTelemetryState(telemetrySetting: TelemetrySetting, apiKey?: string, distinctId?: string) {
 		posthog.reset()
 
-		if (telemetrySetting === "enabled" && apiKey && distinctId) {
+		if (telemetrySetting !== "disabled" && apiKey && distinctId) {
 			TelemetryClient.telemetryEnabled = true
 
 			posthog.init(apiKey, {
-				api_host: "https://us.i.posthog.com",
+				api_host: "https://ph.roocode.com",
+				ui_host: "https://us.posthog.com",
 				persistence: "localStorage",
 				loaded: () => posthog.identify(distinctId),
 				capture_pageview: false,

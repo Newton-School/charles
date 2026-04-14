@@ -3,37 +3,52 @@
 import { usePathname, useSearchParams } from "next/navigation"
 import posthog from "posthog-js"
 import { PostHogProvider as OriginalPostHogProvider } from "posthog-js/react"
-import { useEffect, Suspense } from "react"
+import { useEffect, useRef, Suspense } from "react"
+import { hasConsent } from "@/lib/analytics/consent-manager"
 
-// Create a separate component for analytics tracking that uses useSearchParams
 function PageViewTracker() {
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
+	const previousUrl = useRef<string | null>(null)
 
-	// Track page views
+	// Track page views with proper referrer for SPA navigations
 	useEffect(() => {
-		// Only track page views if PostHog is properly initialized
 		if (pathname && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-			let url = window.location.origin + pathname
-			if (searchParams && searchParams.toString()) {
-				url = url + `?${searchParams.toString()}`
+			const searchString = searchParams?.toString() ?? ""
+			const currentUrl = window.location.origin + pathname + (searchString ? `?${searchString}` : "")
+
+			// Get referrer - for SPA navigations, use previous URL; otherwise use document.referrer
+			const referrer = previousUrl.current ?? document.referrer
+			let referringDomain = ""
+
+			if (referrer) {
+				try {
+					referringDomain = new URL(referrer).hostname
+				} catch {
+					// Invalid URL, leave empty
+				}
 			}
+
 			posthog.capture("$pageview", {
-				$current_url: url,
+				$current_url: currentUrl,
+				$referrer: referrer,
+				$referring_domain: referringDomain,
 			})
+
+			// Update previous URL for next navigation
+			previousUrl.current = currentUrl
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [pathname, searchParams.toString()])
+	}, [pathname, searchParams?.toString()])
 
 	return null
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
-		// Initialize PostHog only on the client side
-		if (typeof window !== "undefined") {
+		// Initialize PostHog immediately on the client side
+		if (typeof window !== "undefined" && !posthog.__loaded) {
 			const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
-			const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST
 
 			// Check if environment variables are set
 			if (!posthogKey) {
@@ -44,27 +59,26 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 				return
 			}
 
-			if (!posthogHost) {
-				console.warn(
-					"PostHog host URL is missing. Using default host. " +
-						"Please set NEXT_PUBLIC_POSTHOG_HOST in your .env file.",
-				)
-			}
+			// Check if user has already consented to cookies
+			const userHasConsented = hasConsent()
 
+			// Initialize PostHog with appropriate persistence based on consent
 			posthog.init(posthogKey, {
-				api_host: posthogHost || "https://us.i.posthog.com",
-				capture_pageview: false, // We'll handle this manually
+				api_host: "https://ph.roocode.com",
+				ui_host: "https://us.posthog.com",
+				capture_pageview: false, // We handle pageview tracking manually
 				loaded: (posthogInstance) => {
 					if (process.env.NODE_ENV === "development") {
-						// Log to console in development
 						posthogInstance.debug()
 					}
 				},
+				save_referrer: true, // Save referrer information
+				save_campaign_params: true, // Save UTM parameters
 				respect_dnt: true, // Respect Do Not Track
+				persistence: userHasConsented ? "localStorage+cookie" : "memory", // Use localStorage if consented, otherwise memory-only
+				opt_out_capturing_by_default: false, // Start tracking immediately
 			})
 		}
-
-		// No explicit cleanup needed for posthog-js v1.231.0
 	}, [])
 
 	return (

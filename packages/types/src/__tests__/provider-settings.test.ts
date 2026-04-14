@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest"
 import { getApiProtocol } from "../provider-settings.js"
 
 describe("getApiProtocol", () => {
@@ -6,11 +5,6 @@ describe("getApiProtocol", () => {
 		it("should return 'anthropic' for anthropic provider", () => {
 			expect(getApiProtocol("anthropic")).toBe("anthropic")
 			expect(getApiProtocol("anthropic", "gpt-4")).toBe("anthropic")
-		})
-
-		it("should return 'anthropic' for claude-code provider", () => {
-			expect(getApiProtocol("claude-code")).toBe("anthropic")
-			expect(getApiProtocol("claude-code", "some-model")).toBe("anthropic")
 		})
 
 		it("should return 'anthropic' for bedrock provider", () => {

@@ -5,6 +5,7 @@ import { execSync } from "child_process"
 import { defineConfig, type PluginOption, type Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
+
 import { sourcemapPlugin } from "./src/vite-plugins/sourcemapPlugin"
 
 function getGitSha() {
@@ -26,9 +27,9 @@ const wasmPlugin = (): Plugin => ({
 			const wasmBinary = await import(id)
 
 			return `
-          			const wasmModule = new WebAssembly.Module(${wasmBinary.default});
-          			export default wasmModule;
-        		`
+           			const wasmModule = new WebAssembly.Module(${wasmBinary.default});
+           			export default wasmModule;
+         		`
 		}
 	},
 })
@@ -80,7 +81,17 @@ export default defineConfig(({ mode }) => {
 		define["process.env.PKG_OUTPUT_CHANNEL"] = JSON.stringify("Roo-Code-Nightly")
 	}
 
-	const plugins: PluginOption[] = [react(), tailwindcss(), persistPortPlugin(), wasmPlugin(), sourcemapPlugin()]
+	const plugins: PluginOption[] = [
+		react({
+			babel: {
+				plugins: [["babel-plugin-react-compiler", { target: "18" }]],
+			},
+		}),
+		tailwindcss(),
+		persistPortPlugin(),
+		wasmPlugin(),
+		sourcemapPlugin(),
+	]
 
 	return {
 		plugins,
@@ -99,7 +110,16 @@ export default defineConfig(({ mode }) => {
 			sourcemap: true,
 			// Ensure source maps are properly included in the build
 			minify: mode === "production" ? "esbuild" : false,
+			// Use a single combined CSS bundle so all webviews share styles
+			cssCodeSplit: false,
 			rollupOptions: {
+				// Externalize vscode module - it's imported by file-search.ts which is
+				// dynamically imported by roo-config/index.ts, but should never be bundled
+				// in the webview since it's not available in the browser context
+				external: ["vscode"],
+				input: {
+					index: resolve(__dirname, "index.html"),
+				},
 				output: {
 					entryFileNames: `assets/[name].js`,
 					chunkFileNames: (chunkInfo) => {
@@ -110,16 +130,18 @@ export default defineConfig(({ mode }) => {
 						return `assets/chunk-[hash].js`
 					},
 					assetFileNames: (assetInfo) => {
-						if (
-							assetInfo.name &&
-							(assetInfo.name.endsWith(".woff2") ||
-								assetInfo.name.endsWith(".woff") ||
-								assetInfo.name.endsWith(".ttf"))
-						) {
+						const name = assetInfo.name || ""
+
+						// Force all CSS into a single predictable file used by both webviews
+						if (name.endsWith(".css")) {
+							return "assets/index.css"
+						}
+
+						if (name.endsWith(".woff2") || name.endsWith(".woff") || name.endsWith(".ttf")) {
 							return "assets/fonts/[name][extname]"
 						}
 						// Ensure source maps are included in the build
-						if (assetInfo.name && assetInfo.name.endsWith(".map")) {
+						if (name.endsWith(".map")) {
 							return "assets/[name]"
 						}
 						return "assets/[name][extname]"

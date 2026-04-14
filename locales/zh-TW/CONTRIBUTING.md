@@ -11,128 +11,131 @@
 </sub>
 </div>
 
-# 參與 Charles 貢獻
+# 為 Roo Code 做出貢獻
 
-Charles 是一個由社群驅動的專案，我們深深重視每一份貢獻。為了簡化協作流程，我們採用 [Issue-First](#issue-first-方式) 原則，這表示所有 [Pull Request (PR)](#提交-pull-request) 必須先關聯至 GitHub Issue。請仔細閱讀本指南。
+Roo Code 是一個由社群驅動的專案，我們非常重視每一份貢獻。為了簡化協作流程，我們採用 [「Issue 優先」的方法](#issue-優先方法)，這意味著所有的 [Pull Request (PR)](#提交-pull-request) 都必須先連結到一個 GitHub Issue。請仔細閱讀本指南。
 
 ## 目錄
 
-- [貢獻前須知](#貢獻前須知)
-- [尋找與規劃你的貢獻](#尋找與規劃你的貢獻)
-- [開發與提交流程](#開發與提交流程)
-- [法律聲明](#法律聲明)
+- [在您貢獻之前](#在您貢獻之前)
+- [尋找和規劃您的貢獻](#尋找和規劃您的貢獻)
+- [開發和提交流程](#開發和提交流程)
+- [法律](#法律)
 
-## 貢獻前須知
+## 在您貢獻之前
 
 ### 1. 行為準則
 
-所有貢獻者必須遵守我們的[行為準則](./CODE_OF_CONDUCT.md)。
+所有貢獻者都必須遵守我們的 [行為準則](./CODE_OF_CONDUCT.md)。
 
-### 2. 專案藍圖
+### 2. 專案路線圖
 
-我們的藍圖指引專案方向。請將你的貢獻與這些關鍵目標保持一致：
+我們的路線圖指引著專案的方向。請將您的貢獻與這些關鍵目標保持一致：
 
-### 可靠性優先
+### 可靠性第一 (Reliability First)
 
-- 確保差異編輯和命令執行始終可靠
-- 減少阻礙常規使用的摩擦點
-- 確保在所有語言環境和平台上順暢運行
-- 擴展對各種 AI 供應商和模型的強大支援
+- 確保差異編輯和命令執行始終可靠。
+- 減少阻礙常規使用的摩擦。
+- 保證在所有語系和平台上的操作流暢。
+- 擴大對各種 AI 供應商和模型的強大支援。
 
-### 增強使用者體驗
+### 增強的使用者體驗 (Enhanced User Experience)
 
-- 簡化使用者介面，提高清晰度和直覺性
-- 持續改進工作流程，滿足開發者對日常工具的高期望
+- 簡化 UI/UX，提高清晰度和直覺性。
+- 持續改進工作流程，以滿足開發者對日常使用工具的高期望。
 
-### 引領代理效能
+### 在 Agent 效能上領先 (Leading on Agent Performance)
 
-- 建立全面的評估基準（evals）衡量實際工作中的生產力
-- 讓每個人都能輕鬆執行和解讀這些評估
-- 提供明顯提升評分的改進
+- 建立全面的評估基準 (Evals) 來衡量實際應用的生產力。
+- 讓每個人都能輕鬆執行和解讀這些評估結果。
+- 發布能顯示評估分數有明顯提升的改進。
 
-在 PR 中請提及與這些領域的關聯。
+在您的 PR 中提及與這些領域的一致性。
 
-### 3. 加入 Charles 社群
+### 3. 加入 Roo Code 社群
 
 - **主要方式：** 加入我們的 [Discord](https://discord.gg/roocode) 並私訊 **Hannes Rudolph (`hrudolph`)**。
-- **替代方式：** 有經驗的貢獻者可透過 [GitHub Projects](https://github.com/orgs/RooCodeInc/projects/1) 直接參與。
+- **替代方式：** 經驗豐富的貢獻者可以透過 [GitHub Project](https://github.com/orgs/RooCodeInc/projects/1) 直接參與。
 
-## 尋找與規劃你的貢獻
+## 尋找和規劃您的貢獻
 
 ### 貢獻類型
 
-- **Bug 修正：** 解決程式碼問題。
+- **錯誤修復：** 解決程式碼問題。
 - **新功能：** 新增功能。
-- **文件：** 完善指南和提高清晰度。
+- **文件：** 改進指南和清晰度。
 
-### Issue-First 方式
+### Issue 優先方法
 
-所有貢獻必須從 GitHub Issue 開始。
+所有貢獻都始於使用我們精簡範本的 GitHub Issue。
 
-- **檢查現有 issue：** 搜尋 [GitHub Issues](https://github.com/RooCodeInc/Roo-Code/issues)。
-- **建立 issue：** 使用適當範本：
-    - **Bug：** 「Bug Report」範本。
-    - **功能：** 「Detailed Feature Proposal」範本。開始前需獲得批准。
-- **認領 issue：** 留言並等待正式分配。
+- **檢查現有 Issue**：在 [GitHub Issues](https://github.com/RooCodeInc/Roo-Code/issues) 中搜尋。
+- **使用以下範本建立 Issue**：
+    - **增強功能：** 「Enhancement Request」範本（著重於使用者利益的淺顯描述）。
+    - **錯誤** 「Bug Report」範本（最少的重現步驟 + 預期與實際結果 + 版本）。
+- **想參與其中嗎？** 在 Issue 上留言「Claiming」，並在 [Discord](https://discord.gg/roocode) 上私訊 **Hannes Rudolph (`hrudolph`)** 以獲得分配。分配結果將在討論串中確認。
+- **PR 必須連結到 Issue。** 未連結的 PR 可能會被關閉。
 
-**未關聯已批准 issue 的 PR 可能會被關閉。**
+### 決定做什麼
 
-### 決定要做什麼
+- 查看 [GitHub 專案](https://github.com/orgs/RooCodeInc/projects/1) 中的「Issue [Unassigned]」。
+- 如需文件，請造訪 [Roo Code Docs](https://github.com/RooCodeInc/Roo-Code-Docs)。
 
-- 查看 [GitHub 專案](https://github.com/orgs/RooCodeInc/projects/1) 中未分配的「Good First Issues」。
-- 文件相關，請訪問 [Charles Docs](https://github.com/Newton-School/charles)。
+### 回報錯誤
 
-### 回報 Bug
+- 首先檢查現有的報告。
+- 使用 [「Bug Report」範本](https://github.com/RooCodeInc/Roo-Code/issues/new/choose) 建立一個新的錯誤回報，並提供：
+    - 清晰、編號的重現步驟
+    - 預期與實際結果
+    - Roo Code 版本（必填）；如果相關，還需提供 API 供應商/模型
+- **安全問題**：透過 [安全公告 (Security Advisories)](https://github.com/RooCodeInc/Roo-Code/security/advisories/new) 私下回報。
 
-- 先檢查是否已有相關報告。
-- 使用 [「Bug Report」範本](https://github.com/RooCodeInc/Roo-Code/issues/new/choose) 建立新 bug 報告。
-- **安全問題：** 透過 [security advisories](https://github.com/RooCodeInc/Roo-Code/security/advisories/new) 私下回報。
+## 開發和提交流程
 
-## 開發與提交流程
+### 開發設定
 
-### 開發環境設定
-
-1. **Fork & Clone：**
+1. **Fork 與 Clone：**
 
 ```
-git clone https://github.com/你的帳號/Roo-Code.git
+git clone https://github.com/YOUR_USERNAME/Roo-Code.git
 ```
 
 2. **安裝相依套件：**
 
 ```
-npm run install:all
+pnpm install
 ```
 
-3. **除錯：** 在 VS Code 中按 `F5` 開啟。
+3. **偵錯：** 使用 VS Code 開啟（`F5`）。
 
-### 程式碼規範
+### 程式碼撰寫指南
 
-- 每個 PR 專注於一個功能或修正。
-- 遵循 ESLint 和 TypeScript 最佳實踐。
-- 撰寫清晰的提交訊息，引用相關 issue（如 `Fixes #123`）。
-- 提供完整測試（`npm test`）。
-- 提交前先在最新 `main` 分支上進行 rebase。
+- 每個功能或修復使用一個單一目的的 PR。
+- 遵循 ESLint 和 TypeScript 的最佳實務。
+- 撰寫清晰、描述性的 Commit 訊息，並引用 Issue（例如，`Fixes #123`）。
+- 提供全面的測試（`npm test`）。
+- 在提交前 Rebase 到最新的 `main` 分支。
 
 ### 提交 Pull Request
 
-- 如需早期回饋，可先提交**草稿 PR**。
-- 清晰描述你的更改，遵循 Pull Request 範本。
-- 為 UI 變更提供截圖/影片。
-- 說明是否需要更新文件。
+- 如果希望獲得早期回饋，請以 **Draft PR** 開始。
+- 遵循 Pull Request 範本，清晰地描述您的變更。
+- 在 PR 描述/標題中連結 Issue（例如，「Fixes #123」）。
+- 為使用者介面變更提供螢幕截圖/影片。
+- 指明是否需要更新文件。
 
 ### Pull Request 政策
 
-- 必須引用已批准並分配的 issue。
-- 不遵守政策的 PR 可能會被關閉。
-- PR 應通過 CI 測試，符合藍圖，並有清晰文件。
+- 必須引用一個已指派的 GitHub Issue。如要被指派：請在 Issue 上留言「Claiming」，並在 [Discord](https://discord.gg/roocode) 上私訊 **Hannes Rudolph (`hrudolph`)**。指派結果將可在討論串中確認。
+- 未連結 Issue 的 PR 可能會被關閉。
+- PR 必須通過 CI 測試，與路線圖保持一致，並有清晰的文件。
 
 ### 審查流程
 
-- **每日篩查：** 維護者快速檢查。
+- **每日 Triage：** 維護者進行快速檢查。
 - **每週深入審查：** 全面評估。
-- **根據回饋快速迭代**。
+- **根據回饋及時迭代**。
 
-## 法律聲明
+## 法律資訊
 
-提交貢獻即表示你同意你的貢獻將基於 Apache 2.0 授權條款，與 Charles 的授權一致。
+透過貢獻，您同意您的貢獻將根據 Apache 2.0 授權條款進行授權，這與 Roo Code 的授權一致。

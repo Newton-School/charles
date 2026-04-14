@@ -57,17 +57,15 @@ describe("ProviderSettingsManager", () => {
 						default: {
 							config: {},
 							id: "default",
-							diffEnabled: true,
-							fuzzyMatchThreshold: 1.0,
 						},
 					},
 					modeApiConfigs: {},
 					migrations: {
 						rateLimitSecondsMigrated: true,
-						diffSettingsMigrated: true,
 						openAiHeadersMigrated: true,
 						consecutiveMistakeLimitMigrated: true,
 						todoListEnabledMigrated: true,
+						claudeCodeLegacySettingsMigrated: true,
 					},
 				}),
 			)
@@ -92,7 +90,6 @@ describe("ProviderSettingsManager", () => {
 					},
 					migrations: {
 						rateLimitSecondsMigrated: true,
-						diffSettingsMigrated: true,
 					},
 				}),
 			)
@@ -169,7 +166,6 @@ describe("ProviderSettingsManager", () => {
 					},
 					migrations: {
 						rateLimitSecondsMigrated: true,
-						diffSettingsMigrated: true,
 						openAiHeadersMigrated: true,
 						consecutiveMistakeLimitMigrated: false,
 					},
@@ -210,7 +206,6 @@ describe("ProviderSettingsManager", () => {
 					},
 					migrations: {
 						rateLimitSecondsMigrated: true,
-						diffSettingsMigrated: true,
 						openAiHeadersMigrated: true,
 						consecutiveMistakeLimitMigrated: true,
 						todoListEnabledMigrated: false,
@@ -227,6 +222,118 @@ describe("ProviderSettingsManager", () => {
 			expect(storedConfig.apiConfigs.test.todoListEnabled).toEqual(true)
 			expect(storedConfig.apiConfigs.existing.todoListEnabled).toEqual(false)
 			expect(storedConfig.migrations.todoListEnabledMigrated).toEqual(true)
+		})
+
+		it("should apply model migrations for all providers", async () => {
+			mockSecrets.get.mockResolvedValue(
+				JSON.stringify({
+					currentApiConfigName: "default",
+					apiConfigs: {
+						default: {
+							config: {},
+							id: "default",
+							apiProvider: "roo",
+							apiModelId: "roo/code-supernova", // Old model ID
+						},
+						test: {
+							apiProvider: "roo",
+							apiModelId: "roo/code-supernova", // Old model ID
+						},
+						existing: {
+							apiProvider: "roo",
+							apiModelId: "roo/code-supernova-1-million", // Already migrated
+						},
+						otherProvider: {
+							apiProvider: "anthropic",
+							apiModelId: "roo/code-supernova", // Should not be migrated (different provider)
+						},
+						noProvider: {
+							id: "no-provider",
+							apiModelId: "roo/code-supernova", // Should not be migrated (no provider)
+						},
+					},
+					migrations: {
+						rateLimitSecondsMigrated: true,
+						openAiHeadersMigrated: true,
+						consecutiveMistakeLimitMigrated: true,
+						todoListEnabledMigrated: true,
+					},
+				}),
+			)
+
+			await providerSettingsManager.initialize()
+
+			// Get the last call to store, which should contain the migrated config
+			const calls = mockSecrets.store.mock.calls
+			const storedConfig = JSON.parse(calls[calls.length - 1][1])
+
+			// Roo provider configs should be migrated
+			expect(storedConfig.apiConfigs.default.apiModelId).toEqual("roo/code-supernova-1-million")
+			expect(storedConfig.apiConfigs.test.apiModelId).toEqual("roo/code-supernova-1-million")
+			expect(storedConfig.apiConfigs.existing.apiModelId).toEqual("roo/code-supernova-1-million")
+
+			// Non-roo provider configs should not be migrated
+			expect(storedConfig.apiConfigs.otherProvider.apiModelId).toEqual("roo/code-supernova")
+			expect(storedConfig.apiConfigs.noProvider.apiModelId).toEqual("roo/code-supernova")
+		})
+
+		it("should apply model migrations every time, not just once", async () => {
+			// First load with old model
+			mockSecrets.get.mockResolvedValue(
+				JSON.stringify({
+					currentApiConfigName: "default",
+					apiConfigs: {
+						default: {
+							apiProvider: "roo",
+							apiModelId: "roo/code-supernova",
+							id: "default",
+						},
+					},
+					migrations: {
+						rateLimitSecondsMigrated: true,
+						openAiHeadersMigrated: true,
+						consecutiveMistakeLimitMigrated: true,
+						todoListEnabledMigrated: true,
+					},
+				}),
+			)
+
+			await providerSettingsManager.initialize()
+
+			// Verify migration happened
+			let calls = mockSecrets.store.mock.calls
+			let storedConfig = JSON.parse(calls[calls.length - 1][1])
+			expect(storedConfig.apiConfigs.default.apiModelId).toEqual("roo/code-supernova-1-million")
+
+			// Create a new instance to simulate another load
+			const newManager = new ProviderSettingsManager(mockContext)
+
+			// Somehow the model got reverted (e.g., manual edit, sync issue)
+			mockSecrets.get.mockResolvedValue(
+				JSON.stringify({
+					currentApiConfigName: "default",
+					apiConfigs: {
+						default: {
+							apiProvider: "roo",
+							apiModelId: "roo/code-supernova", // Old model again
+							id: "default",
+						},
+					},
+					migrations: {
+						rateLimitSecondsMigrated: true,
+						openAiHeadersMigrated: true,
+						consecutiveMistakeLimitMigrated: true,
+						todoListEnabledMigrated: true,
+					},
+				}),
+			)
+
+			await newManager.initialize()
+
+			// Verify migration happened again
+			calls = mockSecrets.store.mock.calls
+			storedConfig = JSON.parse(calls[calls.length - 1][1])
+			expect(storedConfig.apiConfigs.default.apiModelId).toEqual("roo/code-supernova-1-million")
 		})
 
 		it("should throw error if secrets storage fails", async () => {
@@ -449,7 +556,6 @@ describe("ProviderSettingsManager", () => {
 					apiConfigs: { default: {} },
 					migrations: {
 						rateLimitSecondsMigrated: true,
-						diffSettingsMigrated: true,
 						openAiHeadersMigrated: true,
 					},
 				}),
@@ -459,6 +565,47 @@ describe("ProviderSettingsManager", () => {
 			await expect(providerSettingsManager.saveConfig("test", {})).rejects.toThrow(
 				"Failed to save config: Error: Failed to write provider profiles to secrets: Error: Storage failed",
 			)
+		})
+
+		it("should preserve full fields including legacy provider-specific keys when saving retired provider profiles", async () => {
+			mockSecrets.get.mockResolvedValue(
+				JSON.stringify({
+					currentApiConfigName: "default",
+					apiConfigs: {
+						default: {},
+					},
+					modeApiConfigs: {
+						code: "default",
+						architect: "default",
+						ask: "default",
+					},
+				}),
+			)
+
+			// Include a legacy provider-specific field (groqApiKey) that is no
+			// longer in the schema — passthrough() must keep it.
+			const retiredConfig = {
+				apiProvider: "groq",
+				apiKey: "legacy-key",
+				apiModelId: "legacy-model",
+				openAiBaseUrl: "https://legacy.example/v1",
+				openAiApiKey: "legacy-openai-key",
+				modelMaxTokens: 4096,
+				groqApiKey: "legacy-groq-specific-key",
+			} as ProviderSettings
+
+			await providerSettingsManager.saveConfig("retired", retiredConfig)
+
+			const storedConfig = JSON.parse(mockSecrets.store.mock.calls[mockSecrets.store.mock.calls.length - 1][1])
+			expect(storedConfig.apiConfigs.retired.apiProvider).toBe("groq")
+			expect(storedConfig.apiConfigs.retired.apiKey).toBe("legacy-key")
+			expect(storedConfig.apiConfigs.retired.apiModelId).toBe("legacy-model")
+			expect(storedConfig.apiConfigs.retired.openAiBaseUrl).toBe("https://legacy.example/v1")
+			expect(storedConfig.apiConfigs.retired.openAiApiKey).toBe("legacy-openai-key")
+			expect(storedConfig.apiConfigs.retired.modelMaxTokens).toBe(4096)
+			// Verify legacy provider-specific field is preserved via passthrough
+			expect(storedConfig.apiConfigs.retired.groqApiKey).toBe("legacy-groq-specific-key")
+			expect(storedConfig.apiConfigs.retired.id).toBeTruthy()
 		})
 	})
 
@@ -578,7 +725,6 @@ describe("ProviderSettingsManager", () => {
 					apiConfigs: { test: { apiProvider: "anthropic", id: "test-id" } },
 					migrations: {
 						rateLimitSecondsMigrated: true,
-						diffSettingsMigrated: true,
 						openAiHeadersMigrated: true,
 					},
 				}),
@@ -590,7 +736,98 @@ describe("ProviderSettingsManager", () => {
 			)
 		})
 
-		it("should remove invalid profiles during load", async () => {
+		it("should sanitize unknown providers by resetting apiProvider to undefined", async () => {
+			// This tests the fix for the infinite loop issue when a provider is removed
+			const configWithUnknownProvider = {
+				currentApiConfigName: "valid",
+				apiConfigs: {
+					valid: {
+						apiProvider: "anthropic",
+						apiKey: "valid-key",
+						apiModelId: "claude-3-opus-20240229",
+						id: "valid-id",
+					},
+					unknownProvider: {
+						// Provider value that is neither active nor retired.
+						id: "removed-id",
+						apiProvider: "invalid-removed-provider",
+						apiKey: "some-key",
+						apiModelId: "some-model",
+					},
+				},
+				migrations: {
+					rateLimitSecondsMigrated: true,
+					openAiHeadersMigrated: true,
+					consecutiveMistakeLimitMigrated: true,
+					todoListEnabledMigrated: true,
+				},
+			}
+
+			mockSecrets.get.mockResolvedValue(JSON.stringify(configWithUnknownProvider))
+
+			await providerSettingsManager.initialize()
+
+			const storeCalls = mockSecrets.store.mock.calls
+			expect(storeCalls.length).toBeGreaterThan(0)
+			const finalStoredConfigJson = storeCalls[storeCalls.length - 1][1]
+
+			const storedConfig = JSON.parse(finalStoredConfigJson)
+			// The valid provider should be untouched
+			expect(storedConfig.apiConfigs.valid).toBeDefined()
+			expect(storedConfig.apiConfigs.valid.apiProvider).toBe("anthropic")
+
+			// The config with the unknown provider should have its apiProvider reset to undefined
+			// but still be present (not filtered out entirely)
+			expect(storedConfig.apiConfigs.unknownProvider).toBeDefined()
+			expect(storedConfig.apiConfigs.unknownProvider.apiProvider).toBeUndefined()
+			expect(storedConfig.apiConfigs.unknownProvider.id).toBe("removed-id")
+		})
+
+		it("should preserve retired providers and their fields including legacy provider-specific keys during initialize", async () => {
+			const configWithRetiredProvider = {
+				currentApiConfigName: "retiredProvider",
+				apiConfigs: {
+					retiredProvider: {
+						id: "retired-id",
+						apiProvider: "groq",
+						apiKey: "legacy-key",
+						apiModelId: "legacy-model",
+						openAiBaseUrl: "https://legacy.example/v1",
+						modelMaxTokens: 1024,
+						// Legacy provider-specific field no longer in schema
+						groqApiKey: "legacy-groq-key",
+					},
+				},
+				migrations: {
+					rateLimitSecondsMigrated: false,
+					openAiHeadersMigrated: true,
+					consecutiveMistakeLimitMigrated: true,
+					todoListEnabledMigrated: true,
+					claudeCodeLegacySettingsMigrated: true,
+				},
+			}
+
+			mockGlobalState.get.mockResolvedValue(0)
+			mockSecrets.get.mockResolvedValue(JSON.stringify(configWithRetiredProvider))
+
+			await providerSettingsManager.initialize()
+
+			const storeCalls = mockSecrets.store.mock.calls
+			expect(storeCalls.length).toBeGreaterThan(0)
+			const finalStoredConfigJson = storeCalls[storeCalls.length - 1][1]
+			const storedConfig = JSON.parse(finalStoredConfigJson)
+
+			expect(storedConfig.apiConfigs.retiredProvider).toBeDefined()
+			expect(storedConfig.apiConfigs.retiredProvider.apiProvider).toBe("groq")
+			expect(storedConfig.apiConfigs.retiredProvider.apiKey).toBe("legacy-key")
+			expect(storedConfig.apiConfigs.retiredProvider.apiModelId).toBe("legacy-model")
+			expect(storedConfig.apiConfigs.retiredProvider.openAiBaseUrl).toBe("https://legacy.example/v1")
+			expect(storedConfig.apiConfigs.retiredProvider.modelMaxTokens).toBe(1024)
+			// Verify legacy provider-specific field is preserved via passthrough
+			expect(storedConfig.apiConfigs.retiredProvider.groqApiKey).toBe("legacy-groq-key")
+		})
+
+		it("should sanitize invalid providers and remove non-object profiles during load", async () => {
 			const invalidConfig = {
 				currentApiConfigName: "valid",
 				apiConfigs: {
@@ -600,12 +837,12 @@ describe("ProviderSettingsManager", () => {
 						apiModelId: "claude-3-opus-20240229",
 						rateLimitSeconds: 0,
 					},
-					invalid: {
-						// Invalid API provider.
+					invalidProvider: {
+						// Invalid API provider - should be sanitized (kept but apiProvider reset to undefined)
 						id: "x.ai",
 						apiProvider: "x.ai",
 					},
-					// Incorrect type.
+					// Incorrect type - should be completely removed
 					anotherInvalid: "not an object",
 				},
 				migrations: {
@@ -622,11 +859,50 @@ describe("ProviderSettingsManager", () => {
 			const finalStoredConfigJson = storeCalls[storeCalls.length - 1][1]
 
 			const storedConfig = JSON.parse(finalStoredConfigJson)
+			// Valid config should be untouched
 			expect(storedConfig.apiConfigs.valid).toBeDefined()
-			expect(storedConfig.apiConfigs.invalid).toBeUndefined()
+			expect(storedConfig.apiConfigs.valid.apiProvider).toBe("anthropic")
+
+			// Invalid provider config should be sanitized - kept but apiProvider reset to undefined
+			expect(storedConfig.apiConfigs.invalidProvider).toBeDefined()
+			expect(storedConfig.apiConfigs.invalidProvider.apiProvider).toBeUndefined()
+			expect(storedConfig.apiConfigs.invalidProvider.id).toBe("x.ai")
+
+			// Non-object config should be completely removed
 			expect(storedConfig.apiConfigs.anotherInvalid).toBeUndefined()
-			expect(Object.keys(storedConfig.apiConfigs)).toEqual(["valid"])
+
+			expect(Object.keys(storedConfig.apiConfigs)).toEqual(["valid", "invalidProvider"])
 			expect(storedConfig.currentApiConfigName).toBe("valid")
+		})
+	})
+
+	describe("Export", () => {
+		it("should preserve retired provider profiles with full fields", async () => {
+			const existingConfig: ProviderProfiles = {
+				currentApiConfigName: "retired",
+				apiConfigs: {
+					retired: {
+						id: "retired-id",
+						apiProvider: "groq",
+						apiKey: "legacy-key",
+						apiModelId: "legacy-model",
+						openAiBaseUrl: "https://legacy.example/v1",
+						modelMaxTokens: 4096,
+						modelMaxThinkingTokens: 2048,
+					},
+				},
+			}
+
+			mockSecrets.get.mockResolvedValue(JSON.stringify(existingConfig))
+
+			const exported = await providerSettingsManager.export()
+
+			expect(exported.apiConfigs.retired.apiProvider).toBe("groq")
+			expect(exported.apiConfigs.retired.apiKey).toBe("legacy-key")
+			expect(exported.apiConfigs.retired.apiModelId).toBe("legacy-model")
+			expect(exported.apiConfigs.retired.openAiBaseUrl).toBe("https://legacy.example/v1")
+			expect(exported.apiConfigs.retired.modelMaxTokens).toBe(4096)
+			expect(exported.apiConfigs.retired.modelMaxThinkingTokens).toBe(2048)
 		})
 	})
 

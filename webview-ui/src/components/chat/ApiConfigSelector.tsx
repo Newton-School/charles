@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback } from "react"
 import { Fzf } from "fzf"
-import { ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useRooPortal } from "@/components/ui/hooks/useRooPortal"
@@ -18,9 +17,11 @@ interface ApiConfigSelectorProps {
 	title: string
 	onChange: (value: string) => void
 	triggerClassName?: string
-	listApiConfigMeta: Array<{ id: string; name: string }>
+	listApiConfigMeta: Array<{ id: string; name: string; modelId?: string }>
 	pinnedApiConfigs?: Record<string, boolean>
 	togglePinnedApiConfig: (id: string) => void
+	lockApiConfigAcrossModes: boolean
+	onToggleLockApiConfig: () => void
 }
 
 export const ApiConfigSelector = ({
@@ -33,6 +34,8 @@ export const ApiConfigSelector = ({
 	listApiConfigMeta,
 	pinnedApiConfigs,
 	togglePinnedApiConfig,
+	lockApiConfigAcrossModes,
+	onToggleLockApiConfig,
 }: ApiConfigSelectorProps) => {
 	const { t } = useAppTranslation()
 	const [open, setOpen] = useState(false)
@@ -87,7 +90,7 @@ export const ApiConfigSelector = ({
 	}, [])
 
 	const renderConfigItem = useCallback(
-		(config: { id: string; name: string }, isPinned: boolean) => {
+		(config: { id: string; name: string; modelId?: string }, isPinned: boolean) => {
 			const isCurrentConfig = config.id === value
 
 			return (
@@ -100,7 +103,18 @@ export const ApiConfigSelector = ({
 						isCurrentConfig &&
 							"bg-vscode-list-activeSelectionBackground text-vscode-list-activeSelectionForeground",
 					)}>
-					<span className="flex-1 truncate">{config.name}</span>
+					<div className="flex-1 min-w-0 flex items-center gap-1 overflow-hidden">
+						<span className="flex-shrink-0">{config.name}</span>
+						{config.modelId && (
+							<>
+								<span
+									className="text-vscode-descriptionForeground opacity-70 min-w-0 overflow-hidden"
+									style={{ direction: "rtl", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+									{config.modelId}
+								</span>
+							</>
+						)}
+					</div>
 					<div className="flex items-center gap-1">
 						{isCurrentConfig && (
 							<div className="size-5 p-1 flex items-center justify-center">
@@ -138,7 +152,7 @@ export const ApiConfigSelector = ({
 					disabled={disabled}
 					data-testid="dropdown-trigger"
 					className={cn(
-						"w-full min-w-0 max-w-full inline-flex items-center gap-1.5 relative whitespace-nowrap px-1.5 py-1 text-xs",
+						"min-w-0 inline-flex items-center relative whitespace-nowrap px-1.5 py-1 text-xs",
 						"bg-transparent border border-[rgba(255,255,255,0.08)] rounded-md text-vscode-foreground",
 						"transition-all duration-150 focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder focus-visible:ring-inset",
 						disabled
@@ -146,12 +160,6 @@ export const ApiConfigSelector = ({
 							: "opacity-90 hover:opacity-100 hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)] cursor-pointer",
 						triggerClassName,
 					)}>
-					<ChevronUp
-						className={cn(
-							"pointer-events-none opacity-80 flex-shrink-0 size-3 transition-transform duration-200",
-							open && "rotate-180",
-						)}
-					/>
 					<span className="truncate">{displayName}</span>
 				</PopoverTrigger>
 			</StandardTooltip>
@@ -189,27 +197,31 @@ export const ApiConfigSelector = ({
 						</div>
 					)}
 
-					{/* Config list */}
-					<div className="max-h-[300px] overflow-y-auto">
-						{filteredConfigs.length === 0 && searchValue ? (
-							<div className="py-2 px-3 text-sm text-vscode-foreground/70">
-								{t("common:ui.no_results")}
-							</div>
-						) : (
-							<div className="py-1">
-								{/* Pinned configs */}
-								{pinnedConfigs.map((config) => renderConfigItem(config, true))}
+					{/* Config list - single scroll container */}
+					{filteredConfigs.length === 0 && searchValue ? (
+						<div className="py-2 px-3 text-sm text-vscode-foreground/70">{t("common:ui.no_results")}</div>
+					) : (
+						<div className="max-h-[300px] overflow-y-auto">
+							{/* Pinned configs - sticky header */}
+							{pinnedConfigs.length > 0 && (
+								<div
+									className={cn(
+										"sticky top-0 z-10 bg-vscode-dropdown-background py-1",
+										unpinnedConfigs.length > 0 && "border-b border-vscode-dropdown-foreground/10",
+									)}
+									aria-label="Pinned configurations">
+									{pinnedConfigs.map((config) => renderConfigItem(config, true))}
+								</div>
+							)}
 
-								{/* Separator between pinned and unpinned */}
-								{pinnedConfigs.length > 0 && unpinnedConfigs.length > 0 && (
-									<div className="mx-1 my-1 h-px bg-vscode-dropdown-foreground/10" />
-								)}
-
-								{/* Unpinned configs */}
-								{unpinnedConfigs.map((config) => renderConfigItem(config, false))}
-							</div>
-						)}
-					</div>
+							{/* Unpinned configs */}
+							{unpinnedConfigs.length > 0 && (
+								<div className="py-1" aria-label="All configurations">
+									{unpinnedConfigs.map((config) => renderConfigItem(config, false))}
+								</div>
+							)}
+						</div>
+					)}
 
 					{/* Bottom bar with buttons on left and title on right */}
 					<div className="flex flex-row items-center justify-between px-2 py-2 border-t border-vscode-dropdown-border">
@@ -219,6 +231,16 @@ export const ApiConfigSelector = ({
 								title={t("chat:edit")}
 								onClick={handleEditClick}
 								tooltip={false}
+							/>
+							<IconButton
+								iconClass={lockApiConfigAcrossModes ? "codicon-lock" : "codicon-unlock"}
+								title={
+									lockApiConfigAcrossModes
+										? t("chat:unlockApiConfigAcrossModes")
+										: t("chat:lockApiConfigAcrossModes")
+								}
+								className={lockApiConfigAcrossModes ? "text-vscode-focusBorder" : "opacity-60"}
+								onClick={onToggleLockApiConfig}
 							/>
 						</div>
 

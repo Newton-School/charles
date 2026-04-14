@@ -1,13 +1,12 @@
-import { useState, memo } from "react"
+import { memo, type ReactNode, useState } from "react"
 import { Trans } from "react-i18next"
+import { SiDiscord, SiReddit, SiX } from "react-icons/si"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
 import { Package } from "@roo/package"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
-import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { vscode } from "@src/utils/vscode"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@src/components/ui"
-import { Button } from "@src/components/ui"
 
 interface AnnouncementProps {
 	hideAnnouncement: () => void
@@ -25,7 +24,6 @@ interface AnnouncementProps {
 const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 	const { t } = useAppTranslation()
 	const [open, setOpen] = useState(true)
-	const { cloudIsAuthenticated } = useExtensionState()
 
 	return (
 		<Dialog
@@ -37,103 +35,71 @@ const Announcement = ({ hideAnnouncement }: AnnouncementProps) => {
 					hideAnnouncement()
 				}
 			}}>
-			<DialogContent className="max-w-96">
+			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>{t("chat:announcement.title", { version: Package.version })}</DialogTitle>
 				</DialogHeader>
 				<div>
-					<div className="space-y-2">
-						<div>
-							<Trans
-								i18nKey="chat:announcement.stealthModel.feature"
-								components={{
-									bold: <b />,
-									code: <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded" />,
-								}}
+					{/* Regular Release Highlights */}
+					<div className="mb-4">
+						<p className="mb-3">{t("chat:announcement.release.heading")}</p>
+						<ul className="list-disc list-inside text-sm space-y-1.5">
+							<li>{t("chat:announcement.release.gpt54")}</li>
+							<li>{t("chat:announcement.release.slashSkills")}</li>
+						</ul>
+					</div>
+
+					<div className="mt-4 text-sm text-center text-vscode-descriptionForeground">
+						<div className="flex items-center justify-center gap-4">
+							<SocialLink
+								icon={<SiX className="w-4 h-4" aria-hidden />}
+								label="X"
+								href="https://x.com/roocode"
+							/>
+							<SocialLink
+								icon={<SiDiscord className="w-4 h-4" aria-hidden />}
+								label="Discord"
+								href="https://discord.gg/rCQcvT7Fnt"
+							/>
+							<SocialLink
+								icon={<SiReddit className="w-4 h-4" aria-hidden />}
+								label="Reddit"
+								href="https://www.reddit.com/r/RooCode/"
 							/>
 						</div>
 					</div>
 
-					<div className="mt-4">
-						<Trans
-							i18nKey="chat:announcement.stealthModel.note"
-							components={{
-								bold: <b />,
-								code: <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded" />,
-							}}
-						/>
-					</div>
-
-					<div className="mt-4">
-						{!cloudIsAuthenticated ? (
-							<div className="space-y-3">
-								<div className="text-sm w-full">
-									<Trans
-										i18nKey="chat:announcement.stealthModel.selectModel"
-										components={{
-											code: <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded" />,
-											settingsLink: (
-												<VSCodeLink
-													href="#"
-													onClick={(e) => {
-														e.preventDefault()
-														setOpen(false)
-														hideAnnouncement()
-														window.postMessage(
-															{
-																type: "action",
-																action: "settingsButtonClicked",
-																values: { section: "provider" },
-															},
-															"*",
-														)
-													}}
-												/>
-											),
-										}}
-									/>
-								</div>
-								<Button
-									onClick={() => {
-										vscode.postMessage({ type: "rooCloudSignIn" })
-									}}
-									className="w-full">
-									{t("chat:announcement.stealthModel.connectButton")}
-								</Button>
-							</div>
-						) : (
-							<div className="text-sm w-full">
-								<Trans
-									i18nKey="chat:announcement.stealthModel.selectModel"
-									components={{
-										code: <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded" />,
-										settingsLink: (
-											<VSCodeLink
-												href="#"
-												onClick={(e) => {
-													e.preventDefault()
-													setOpen(false)
-													hideAnnouncement()
-													window.postMessage(
-														{
-															type: "action",
-															action: "settingsButtonClicked",
-															values: { section: "provider" },
-														},
-														"*",
-													)
-												}}
-											/>
-										),
-									}}
-								/>
-							</div>
-						)}
+					<div className="mt-3 text-sm text-center text-vscode-descriptionForeground">
+						<Trans i18nKey="chat:announcement.support" components={{ githubLink: <GitHubLink /> }} />
 					</div>
 				</div>
 			</DialogContent>
 		</Dialog>
 	)
 }
+
+const SocialLink = ({ icon, label, href }: { icon: ReactNode; label: string; href: string }) => (
+	<VSCodeLink
+		href={href}
+		className="inline-flex items-center gap-1"
+		onClick={(e) => {
+			e.preventDefault()
+			vscode.postMessage({ type: "openExternal", url: href })
+		}}>
+		{icon}
+		<span className="sr-only">{label}</span>
+	</VSCodeLink>
+)
+
+const GitHubLink = ({ children }: { children?: ReactNode }) => (
+	<VSCodeLink
+		href="https://github.com/RooCodeInc/Roo-Code"
+		onClick={(e) => {
+			e.preventDefault()
+			vscode.postMessage({ type: "openExternal", url: "https://github.com/RooCodeInc/Roo-Code" })
+		}}>
+		{children}
+	</VSCodeLink>
+)
 
 export default memo(Announcement)

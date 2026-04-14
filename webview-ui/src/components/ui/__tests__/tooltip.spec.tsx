@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, it, expect } from "vitest"
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../tooltip"
 import { StandardTooltip } from "../standard-tooltip"
 
@@ -103,6 +103,29 @@ describe("StandardTooltip", () => {
 				expect(tooltips.length).toBeGreaterThan(0)
 			},
 			{ timeout: 1000 },
+		)
+	})
+
+	it("should render with custom delay", async () => {
+		const user = userEvent.setup()
+
+		render(
+			<TooltipProvider>
+				<StandardTooltip content="Tooltip text" delay={0}>
+					<button>Hover me</button>
+				</StandardTooltip>
+			</TooltipProvider>,
+		)
+
+		const trigger = screen.getByText("Hover me")
+		await user.hover(trigger)
+
+		await waitFor(
+			() => {
+				const tooltips = screen.getAllByText("Tooltip text")
+				expect(tooltips.length).toBeGreaterThan(0)
+			},
+			{ timeout: 500 },
 		)
 	})
 

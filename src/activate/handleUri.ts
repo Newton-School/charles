@@ -14,13 +14,6 @@ export const handleUri = async (uri: vscode.Uri) => {
 	}
 
 	switch (path) {
-		case "/glama": {
-			const code = query.get("code")
-			if (code) {
-				await visibleProvider.handleGlamaCallback(code)
-			}
-			break
-		}
 		case "/openrouter": {
 			const code = query.get("code")
 			if (code) {
@@ -30,8 +23,9 @@ export const handleUri = async (uri: vscode.Uri) => {
 		}
 		case "/requesty": {
 			const code = query.get("code")
+			const baseUrl = query.get("baseUrl")
 			if (code) {
-				await visibleProvider.handleRequestyCallback(code)
+				await visibleProvider.handleRequestyCallback(code, baseUrl)
 			}
 			break
 		}
@@ -39,11 +33,13 @@ export const handleUri = async (uri: vscode.Uri) => {
 			const code = query.get("code")
 			const state = query.get("state")
 			const organizationId = query.get("organizationId")
+			const providerModel = query.get("provider_model")
 
 			await CloudService.instance.handleAuthCallback(
 				code,
 				state,
 				organizationId === "null" ? null : organizationId,
+				providerModel,
 			)
 			break
 		}

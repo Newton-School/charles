@@ -1,12 +1,13 @@
-import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import ApiOptions from "../ApiOptions"
-import { MODELS_BY_PROVIDER, PROVIDERS } from "../constants"
-import type { ProviderSettings } from "@roo-code/types"
-import type { OrganizationAllowList } from "@roo/cloud"
+
+import type { ProviderSettings, OrganizationAllowList } from "@roo-code/types"
+
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
+
+import ApiOptions from "../ApiOptions"
+import { MODELS_BY_PROVIDER, PROVIDERS } from "../constants"
 
 // Mock the extension state context
 vi.mock("@src/context/ExtensionStateContext", () => ({
@@ -79,6 +80,17 @@ vi.mock("@src/components/ui", () => ({
 	CollapsibleContent: ({ children }: any) => <div>{children}</div>,
 	Slider: ({ children, ...props }: any) => <div {...props}>{children}</div>,
 	Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+	// Add Popover components for ModelPicker
+	Popover: ({ children }: any) => <div>{children}</div>,
+	PopoverTrigger: ({ children }: any) => <div>{children}</div>,
+	PopoverContent: ({ children }: any) => <div>{children}</div>,
+	// Add Command components for ModelPicker
+	Command: ({ children }: any) => <div>{children}</div>,
+	CommandInput: ({ ...props }: any) => <input {...props} />,
+	CommandList: ({ children }: any) => <div>{children}</div>,
+	CommandEmpty: ({ children }: any) => <div>{children}</div>,
+	CommandGroup: ({ children }: any) => <div>{children}</div>,
+	CommandItem: ({ children, ...props }: any) => <div {...props}>{children}</div>,
 }))
 
 describe("ApiOptions Provider Filtering", () => {
@@ -127,7 +139,7 @@ describe("ApiOptions Provider Filtering", () => {
 		;(MODELS_BY_PROVIDER as any).emptyProvider = {}
 
 		// Add the empty provider to PROVIDERS
-		PROVIDERS.push({ value: "emptyProvider", label: "Empty Provider" })
+		PROVIDERS.push({ value: "emptyProvider", label: "Empty Provider", proxy: false })
 
 		renderWithProviders()
 
@@ -155,10 +167,7 @@ describe("ApiOptions Provider Filtering", () => {
 		expect(providerValues).toContain("ollama")
 		expect(providerValues).toContain("lmstudio")
 		expect(providerValues).toContain("litellm")
-		expect(providerValues).toContain("glama")
-		expect(providerValues).toContain("unbound")
 		expect(providerValues).toContain("requesty")
-		expect(providerValues).toContain("io-intelligence")
 	})
 
 	it("should filter static providers based on organization allow list", () => {
@@ -235,7 +244,7 @@ describe("ApiOptions Provider Filtering", () => {
 		// Add an empty static provider to test
 		;(MODELS_BY_PROVIDER as any).testEmptyProvider = {}
 		// Add the provider to the PROVIDERS list
-		PROVIDERS.push({ value: "testEmptyProvider", label: "Test Empty Provider" })
+		PROVIDERS.push({ value: "testEmptyProvider", label: "Test Empty Provider", proxy: false })
 
 		// Create a mock organization allow list that allows the provider but no models
 		const allowList: OrganizationAllowList = {

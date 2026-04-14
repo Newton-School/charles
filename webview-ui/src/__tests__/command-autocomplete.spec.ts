@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest"
+import type { Command } from "@roo-code/types"
+
 import { getContextMenuOptions, ContextMenuOptionType } from "../utils/context-mentions"
-import type { Command } from "@roo/ExtensionMessage"
 
 describe("Command Autocomplete", () => {
 	const mockCommands: Command[] = [
