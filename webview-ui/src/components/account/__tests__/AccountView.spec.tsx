@@ -41,14 +41,6 @@ vi.mock("@src/utils/TelemetryClient", () => ({
 	},
 }))
 
-// Mock the extension state context
-vi.mock("@src/context/ExtensionStateContext", () => ({
-	useExtensionState: () => ({
-		remoteControlEnabled: false,
-		setRemoteControlEnabled: vi.fn(),
-	}),
-}))
-
 // Mock window global for images
 Object.defineProperty(window, "IMAGES_BASE_URI", {
 	value: "/images",
@@ -102,50 +94,5 @@ describe("AccountView", () => {
 		// Check that user info is displayed instead
 		expect(screen.getByText("Test User")).toBeInTheDocument()
 		expect(screen.getByText("test@example.com")).toBeInTheDocument()
-	})
-
-	it("should display remote control toggle when user has extension bridge enabled", () => {
-		const mockUserInfo = {
-			name: "Test User",
-			email: "test@example.com",
-			extensionBridgeEnabled: true,
-		}
-
-		render(
-			<AccountView
-				userInfo={mockUserInfo}
-				isAuthenticated={true}
-				cloudApiUrl="https://app.roocode.com"
-				onDone={() => {}}
-			/>,
-		)
-
-		// Check that the remote control toggle is displayed
-		expect(screen.getByTestId("remote-control-toggle")).toBeInTheDocument()
-		expect(screen.getByText("Roomote Control")).toBeInTheDocument()
-		expect(
-			screen.getByText("Enable following and interacting with tasks in this workspace with Charles Cloud"),
-		).toBeInTheDocument()
-	})
-
-	it("should not display remote control toggle when user does not have extension bridge enabled", () => {
-		const mockUserInfo = {
-			name: "Test User",
-			email: "test@example.com",
-			extensionBridgeEnabled: false,
-		}
-
-		render(
-			<AccountView
-				userInfo={mockUserInfo}
-				isAuthenticated={true}
-				cloudApiUrl="https://app.roocode.com"
-				onDone={() => {}}
-			/>,
-		)
-
-		// Check that the remote control toggle is NOT displayed
-		expect(screen.queryByTestId("remote-control-toggle")).not.toBeInTheDocument()
-		expect(screen.queryByText("Roomote Control")).not.toBeInTheDocument()
 	})
 })

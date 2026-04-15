@@ -20,37 +20,26 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 	const {
 		autoApprovalEnabled,
 		setAutoApprovalEnabled,
-		alwaysApproveResubmit,
 		setAlwaysAllowReadOnly,
 		setAlwaysAllowWrite,
 		setAlwaysAllowExecute,
-		setAlwaysAllowBrowser,
 		setAlwaysAllowMcp,
 		setAlwaysAllowModeSwitch,
 		setAlwaysAllowSubtasks,
-		setAlwaysApproveResubmit,
 		setAlwaysAllowFollowupQuestions,
-		setAlwaysAllowUpdateTodoList,
 	} = useExtensionState()
 
 	const { t } = useAppTranslation()
 
 	const baseToggles = useAutoApprovalToggles()
 
-	// AutoApproveMenu needs alwaysApproveResubmit in addition to the base toggles
-	const toggles = useMemo(
-		() => ({
-			...baseToggles,
-			alwaysApproveResubmit: alwaysApproveResubmit,
-		}),
-		[baseToggles, alwaysApproveResubmit],
-	)
+	const toggles = useMemo(() => baseToggles, [baseToggles])
 
 	const { hasEnabledOptions, effectiveAutoApprovalEnabled } = useAutoApprovalState(toggles, autoApprovalEnabled)
 
 	const onAutoApproveToggle = useCallback(
 		(key: AutoApproveSetting, value: boolean) => {
-			vscode.postMessage({ type: key, bool: value })
+			vscode.postMessage({ type: "updateSettings", updatedSettings: { [key]: value } })
 
 			// Update the specific toggle state
 			switch (key) {
@@ -63,9 +52,6 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 				case "alwaysAllowExecute":
 					setAlwaysAllowExecute(value)
 					break
-				case "alwaysAllowBrowser":
-					setAlwaysAllowBrowser(value)
-					break
 				case "alwaysAllowMcp":
 					setAlwaysAllowMcp(value)
 					break
@@ -75,14 +61,8 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 				case "alwaysAllowSubtasks":
 					setAlwaysAllowSubtasks(value)
 					break
-				case "alwaysApproveResubmit":
-					setAlwaysApproveResubmit(value)
-					break
 				case "alwaysAllowFollowupQuestions":
 					setAlwaysAllowFollowupQuestions(value)
-					break
-				case "alwaysAllowUpdateTodoList":
-					setAlwaysAllowUpdateTodoList(value)
 					break
 			}
 
@@ -112,13 +92,10 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 			setAlwaysAllowReadOnly,
 			setAlwaysAllowWrite,
 			setAlwaysAllowExecute,
-			setAlwaysAllowBrowser,
 			setAlwaysAllowMcp,
 			setAlwaysAllowModeSwitch,
 			setAlwaysAllowSubtasks,
-			setAlwaysApproveResubmit,
 			setAlwaysAllowFollowupQuestions,
-			setAlwaysAllowUpdateTodoList,
 			setAutoApprovalEnabled,
 		],
 	)
