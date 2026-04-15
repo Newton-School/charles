@@ -1,5 +1,5 @@
 import React from "react"
-import { ListChecks, LayoutList, Settings, CheckCheck, X } from "lucide-react"
+import { ListChecks, LayoutList, CheckCheck, X } from "lucide-react"
 
 import { vscode } from "@/utils/vscode"
 
@@ -108,12 +108,6 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 		})
 	}, [onAutoApproveToggle])
 
-	const handleOpenSettings = React.useCallback(
-		() =>
-			window.postMessage({ type: "action", action: "settingsButtonClicked", values: { section: "autoApprove" } }),
-		[],
-	)
-
 	// Handle the main auto-approval toggle
 	const handleAutoApprovalToggle = React.useCallback(() => {
 		const newValue = !(autoApprovalEnabled ?? false)
@@ -195,10 +189,6 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 							<h4 className="m-0 font-bold text-base text-vscode-foreground">
 								{t("chat:autoApprove.title")}
 							</h4>
-							<Settings
-								className="inline mb-0.5 mr-1 size-4 cursor-pointer"
-								onClick={handleOpenSettings}
-							/>
 						</div>
 						<p className="m-0 text-xs text-vscode-descriptionForeground">
 							{t("chat:autoApprove.description")}

@@ -29,6 +29,10 @@ export type ApiHandlerOptions = Omit<ProviderSettings, "apiProvider"> & {
 
 export type RouterName = DynamicProvider | LocalProvider
 
+export type ModelRecord = Record<string, ModelInfo>
+
+export type RouterModels = Partial<Record<RouterName, ModelRecord>>
+
 export const isRouterName = (value: string): value is RouterName => isDynamicProvider(value) || isLocalProvider(value)
 
 export function toRouterName(value?: string): RouterName {

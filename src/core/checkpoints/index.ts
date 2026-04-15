@@ -105,7 +105,7 @@ export async function getCheckpointService(task: Task, { interval = 250 }: { int
 		}
 
 		// Get checkpoint directory from configuration with fallback to local storage
-		const configuredCheckpointDir = provider?.contextProxy?.getValue("checkpointDirectory")
+		const configuredCheckpointDir = provider?.contextProxy?.getValue("checkpointDirectory") as string | undefined
 		const globalStorageDir = provider?.context.globalStorageUri.fsPath
 
 		if (!globalStorageDir) {
@@ -212,15 +212,8 @@ async function checkGitInstallation(
 			task.enableCheckpoints = false
 			task.checkpointServiceInitializing = false
 
-			// Show user-friendly notification
-			const selection = await vscode.window.showWarningMessage(
-				t("common:errors.git_not_installed"),
-				t("common:buttons.learn_more"),
-			)
-
-			if (selection === t("common:buttons.learn_more")) {
-				await vscode.env.openExternal(vscode.Uri.parse("https://git-scm.com/downloads"))
-			}
+			// Note: Git warning disabled for edison container environment
+			// where git may not be present
 
 			return
 		}
