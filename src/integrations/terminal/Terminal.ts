@@ -1,7 +1,6 @@
 import * as path from "path"
 import * as vscode from "vscode"
 import pWaitFor from "p-wait-for"
-import * as path from "path"
 
 import { Package } from "../../shared/package"
 import type { RooTerminalCallbacks, RooTerminalProcessResultPromise } from "./types"
