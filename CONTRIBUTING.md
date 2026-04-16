@@ -1,6 +1,19 @@
-# Contributing to Charles
+<div align="center">
+<sub>
 
-Charles is a community-driven project, and we deeply value every contribution. To streamline collaboration, we operate on an [Issue-First](#issue-first-approach) basis, meaning all [Pull Requests (PRs)](#submitting-a-pull-request) must first be linked to a GitHub Issue. Please review this guide carefully.
+<b>English</b> • [Català](locales/ca/CONTRIBUTING.md) • [Deutsch](locales/de/CONTRIBUTING.md) • [Español](locales/es/CONTRIBUTING.md) • [Français](locales/fr/CONTRIBUTING.md) • [हिंदी](locales/hi/CONTRIBUTING.md) • [Bahasa Indonesia](locales/id/CONTRIBUTING.md) • [Italiano](locales/it/CONTRIBUTING.md) • [日本語](locales/ja/CONTRIBUTING.md)
+
+</sub>
+<sub>
+
+[한국어](locales/ko/CONTRIBUTING.md) • [Nederlands](locales/nl/CONTRIBUTING.md) • [Polski](locales/pl/CONTRIBUTING.md) • [Português (BR)](locales/pt-BR/CONTRIBUTING.md) • [Русский](locales/ru/CONTRIBUTING.md) • [Türkçe](locales/tr/CONTRIBUTING.md) • [Tiếng Việt](locales/vi/CONTRIBUTING.md) • [简体中文](locales/zh-CN/CONTRIBUTING.md) • [繁體中文](locales/zh-TW/CONTRIBUTING.md)
+
+</sub>
+</div>
+
+# Contributing to Roo Code
+
+Roo Code is a community-driven project, and we deeply value every contribution. To streamline collaboration, we operate on an [Issue-First](#issue-first-approach) basis, meaning all [Pull Requests (PRs)](#submitting-a-pull-request) must first be linked to a GitHub Issue. Please review this guide carefully.
 
 ## Table of Contents
 
@@ -39,9 +52,10 @@ Our roadmap guides the project's direction. Align your contributions with these 
 
 Mention alignment with these areas in your PRs.
 
-### 3. Join the Charles Community
+### 3. Join the Roo Code Community
 
-- **Primary:** Experienced contributors can engage directly via [GitHub Projects](https://github.com/Newton-School).
+- **Primary:** Join our [Discord](https://discord.gg/roocode) and DM **Hannes Rudolph (`hrudolph`)**.
+- **Alternative:** Experienced contributors can engage directly via [GitHub Projects](https://github.com/orgs/RooCodeInc/projects/1).
 
 ## Finding & Planning Your Contribution
 
@@ -53,26 +67,28 @@ Mention alignment with these areas in your PRs.
 
 ### Issue-First Approach
 
-All contributions must begin with a GitHub Issue.
+All contributions start with a GitHub Issue using our skinny templates.
 
-- **Check existing issues**: Search [GitHub Issues](https://github.com/Newton-School/charles/issues).
-- **Create an issue**: Use appropriate templates:
-    - **Bugs:** "Bug Report" template.
-    - **Features:** "Detailed Feature Proposal" template. Approval required before starting.
-- **Claim issues**: Comment and await official assignment.
-
-**PRs without approved issues may be closed.**
+- **Check existing issues**: Search [GitHub Issues](https://github.com/RooCodeInc/Roo-Code/issues).
+- **Create an issue** using:
+    - **Enhancements:** "Enhancement Request" template (plain language focused on user benefit).
+    - **Bugs:** "Bug Report" template (minimal repro + expected vs actual + version).
+- **Want to work on it?** Comment "Claiming" on the issue and DM **Hannes Rudolph (`hrudolph`)** on [Discord](https://discord.gg/roocode) to get assigned. Assignment will be confirmed in the thread.
+- **PRs must link to the issue.** Unlinked PRs may be closed.
 
 ### Deciding What to Work On
 
-- Check the [GitHub Project](https://github.com/orgs/Newton-School/projects/1) for unassigned "Good First Issues."
-- For docs, visit [Charles Docs](https://github.com/Newton-School/charles).
+- Check the [GitHub Project](https://github.com/orgs/RooCodeInc/projects/1) for "Issue [Unassigned]" issues.
+- For docs, visit [Roo Code Docs](https://github.com/RooCodeInc/Roo-Code-Docs).
 
 ### Reporting Bugs
 
 - Check for existing reports first.
-- Create new bugs using the ["Bug Report" template](https://github.com/Newton-School/charles/issues/new/choose).
-- **Security issues**: Report privately via [security advisories](https://github.com/Newton-School/charles/security/advisories/new).
+- Create a new bug using the ["Bug Report" template](https://github.com/RooCodeInc/Roo-Code/issues/new/choose) with:
+    - Clear, numbered reproduction steps
+    - Expected vs actual result
+    - Roo Code version (required); API provider/model if relevant
+- **Security issues**: Report privately via [security advisories](https://github.com/RooCodeInc/Roo-Code/security/advisories/new).
 
 ## Development & Submission Process
 
@@ -81,7 +97,7 @@ All contributions must begin with a GitHub Issue.
 1. **Fork & Clone:**
 
 ```
-git clone https://github.com/YOUR_USERNAME/charles.git
+git clone https://github.com/YOUR_USERNAME/Roo-Code.git
 ```
 
 2. **Install Dependencies:**
@@ -104,13 +120,14 @@ pnpm install
 
 - Begin as a **Draft PR** if seeking early feedback.
 - Clearly describe your changes following the Pull Request Template.
+- Link the issue in the PR description/title (e.g., "Fixes #123").
 - Provide screenshots/videos for UI changes.
 - Indicate if documentation updates are necessary.
 
 ### Pull Request Policy
 
-- Must reference pre-approved, assigned issues.
-- PRs without adherence to the policy may be closed.
+- Must reference an assigned GitHub Issue. To get assigned: comment "Claiming" on the issue and DM **Hannes Rudolph (`hrudolph`)** on [Discord](https://discord.gg/roocode). Assignment will be confirmed in the thread.
+- Unlinked PRs may be closed.
 - PRs should pass CI tests, align with the roadmap, and have clear documentation.
 
 ### Review Process
@@ -121,4 +138,4 @@ pnpm install
 
 ## Legal
 
-By contributing, you agree your contributions will be licensed under the Apache 2.0 License, consistent with Charles's licensing.
+By contributing, you agree your contributions will be licensed under the Apache 2.0 License, consistent with Roo Code's licensing.

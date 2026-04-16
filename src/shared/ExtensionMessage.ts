@@ -10,9 +10,9 @@ import type {
 	MarketplaceItem,
 	TodoItem,
 } from "@roo-code/types"
-import type { CloudUserInfo, OrganizationAllowList, ShareVisibility } from "@roo-code/cloud"
+import type { CloudUserInfo, OrganizationAllowList, ShareVisibility } from "@roo-code/types"
 
-import { GitCommit } from "../utils/git"
+import type { GitCommit } from "@roo-code/types"
 
 import { McpServer } from "./mcp"
 import { Mode } from "./modes"
@@ -211,23 +211,23 @@ export type ExtensionState = Pick<
 	| "alwaysAllowWriteOutsideWorkspace"
 	| "alwaysAllowWriteProtected"
 	// | "writeDelayMs" // Optional in GlobalSettings, required here.
-	| "alwaysAllowBrowser"
-	| "alwaysApproveResubmit"
+	// | "alwaysAllowBrowser" // Not in GlobalSettings schema
+	// | "alwaysApproveResubmit" // Not in GlobalSettings schema
 	// | "requestDelaySeconds" // Optional in GlobalSettings, required here.
 	| "alwaysAllowMcp"
 	| "alwaysAllowModeSwitch"
 	| "alwaysAllowSubtasks"
 	| "alwaysAllowExecute"
-	| "alwaysAllowUpdateTodoList"
+	// | "alwaysAllowUpdateTodoList" // Not in GlobalSettings schema
 	| "allowedCommands"
 	| "deniedCommands"
 	| "allowedMaxRequests"
 	| "allowedMaxCost"
-	| "browserToolEnabled"
-	| "browserViewportSize"
-	| "screenshotQuality"
-	| "remoteBrowserEnabled"
-	| "remoteBrowserHost"
+	// | "browserToolEnabled" // Not in GlobalSettings schema
+	// | "browserViewportSize" // Not in GlobalSettings schema
+	// | "screenshotQuality" // Not in GlobalSettings schema
+	// | "remoteBrowserEnabled" // Not in GlobalSettings schema
+	// | "remoteBrowserHost" // Not in GlobalSettings schema
 	// | "enableCheckpoints" // Optional in GlobalSettings, required here.
 	| "ttsEnabled"
 	| "ttsSpeed"
@@ -237,9 +237,9 @@ export type ExtensionState = Pick<
 	// | "maxWorkspaceFiles" // Optional in GlobalSettings, required here.
 	// | "showRooIgnoredFiles" // Optional in GlobalSettings, required here.
 	// | "maxReadFileLine" // Optional in GlobalSettings, required here.
-	| "maxConcurrentFileReads" // Optional in GlobalSettings, required here.
-	| "terminalOutputLineLimit"
-	| "terminalOutputCharacterLimit"
+	// | "maxConcurrentFileReads" // Not in GlobalSettings schema // Optional in GlobalSettings, required here.
+	// | "terminalOutputLineLimit" // Not in GlobalSettings schema
+	// | "terminalOutputCharacterLimit" // Not in GlobalSettings schema
 	| "terminalShellIntegrationTimeout"
 	| "terminalShellIntegrationDisabled"
 	| "terminalCommandDelay"
@@ -248,10 +248,10 @@ export type ExtensionState = Pick<
 	| "terminalZshOhMy"
 	| "terminalZshP10k"
 	| "terminalZdotdir"
-	| "terminalCompressProgressBar"
+	// | "terminalCompressProgressBar" // Not in GlobalSettings schema
 	| "diagnosticsEnabled"
-	| "diffEnabled"
-	| "fuzzyMatchThreshold"
+	// | "diffEnabled" // Not in GlobalSettings schema
+	// | "fuzzyMatchThreshold" // Not in GlobalSettings schema
 	// | "experiments" // Optional in GlobalSettings, required here.
 	| "language"
 	// | "telemetrySetting" // Optional in GlobalSettings, required here.
@@ -263,14 +263,14 @@ export type ExtensionState = Pick<
 	| "customModePrompts"
 	| "customSupportPrompts"
 	| "enhancementApiConfigId"
-	| "condensingApiConfigId"
+	// | "condensingApiConfigId" // Not in GlobalSettings schema
 	| "customCondensingPrompt"
 	| "codebaseIndexConfig"
 	| "codebaseIndexModels"
 	| "profileThresholds"
 	| "includeDiagnosticMessages"
 	| "maxDiagnosticMessages"
-	| "remoteControlEnabled"
+	// | "remoteControlEnabled" // Not in GlobalSettings schema
 > & {
 	version: string
 	clineMessages: ClineMessage[]

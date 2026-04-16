@@ -41,7 +41,7 @@ export const workspace = {
 	getWorkspaceFolder: () => null,
 	onDidChangeWorkspaceFolders: () => mockDisposable,
 	getConfiguration: () => ({
-		get: () => null,
+		get: (key, defaultValue) => defaultValue,
 	}),
 	createFileSystemWatcher: () => ({
 		onDidCreate: () => mockDisposable,
@@ -71,7 +71,7 @@ export const window = {
 	}),
 	createTerminal: () => ({
 		exitStatus: undefined,
-		name: "Charles",
+		name: "Roo Code",
 		processId: Promise.resolve(123),
 		creationOptions: {},
 		state: { isInteractedWith: true },

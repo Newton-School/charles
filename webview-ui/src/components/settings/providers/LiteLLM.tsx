@@ -1,11 +1,14 @@
 import { useCallback, useState, useEffect, useRef } from "react"
 import { VSCodeTextField, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 
-import { type ProviderSettings, litellmDefaultModelId } from "@roo-code/types"
+import {
+	type ProviderSettings,
+	type OrganizationAllowList,
+	type ExtensionMessage,
+	litellmDefaultModelId,
+} from "@roo-code/types"
 
-import type { OrganizationAllowList } from "@roo/cloud"
 import { RouterName } from "@roo/api"
-import { ExtensionMessage } from "@roo/ExtensionMessage"
 
 import { vscode } from "@src/utils/vscode"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
@@ -20,6 +23,7 @@ type LiteLLMProps = {
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
 	organizationAllowList: OrganizationAllowList
 	modelValidationError?: string
+	simplifySettings?: boolean
 }
 
 export const LiteLLM = ({
@@ -27,6 +31,7 @@ export const LiteLLM = ({
 	setApiConfigurationField,
 	organizationAllowList,
 	modelValidationError,
+	simplifySettings,
 }: LiteLLMProps) => {
 	const { t } = useAppTranslation()
 	const { routerModels } = useExtensionState()
@@ -86,6 +91,7 @@ export const LiteLLM = ({
 			setRefreshError(t("settings:providers.refreshModels.missingConfig"))
 			return
 		}
+
 		vscode.postMessage({ type: "requestRouterModels", values: { litellmApiKey: key, litellmBaseUrl: url } })
 	}, [apiConfiguration, setRefreshStatus, setRefreshError, t])
 
@@ -151,6 +157,7 @@ export const LiteLLM = ({
 				setApiConfigurationField={setApiConfigurationField}
 				organizationAllowList={organizationAllowList}
 				errorMessage={modelValidationError}
+				simplifySettings={simplifySettings}
 			/>
 
 			{/* Show prompt caching option if the selected model supports it */}

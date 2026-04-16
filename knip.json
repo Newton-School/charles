@@ -8,6 +8,7 @@
 		"src/workers/countTokens.ts",
 		"src/extension.ts",
 		"scripts/**",
+		"apps/cli/scripts/**",
 		"apps/web-roo-code/next-sitemap.config.cjs"
 	],
 	"workspaces": {

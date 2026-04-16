@@ -12,15 +12,21 @@ import { ScrollButton } from "@/components/ui"
 
 export function Footer() {
 	const [privacyDropdownOpen, setPrivacyDropdownOpen] = useState(false)
+	const [cloudDropdownOpen, setCloudDropdownOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
+	const cloudDropdownRef = useRef<HTMLDivElement>(null)
 	const logoSrc = useLogoSrc()
 	const { resolvedTheme } = useTheme()
 
 	// Close dropdown when clicking outside
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+			const target = event.target as Node
+			if (dropdownRef.current && !dropdownRef.current.contains(target)) {
 				setPrivacyDropdownOpen(false)
+			}
+			if (cloudDropdownRef.current && !cloudDropdownRef.current.contains(target)) {
+				setCloudDropdownOpen(false)
 			}
 		}
 
@@ -35,13 +41,13 @@ export function Footer() {
 				<div className="xl:grid xl:grid-cols-3 xl:gap-8">
 					<div className="space-y-8">
 						<div className="flex items-center">
-							<Image src={logoSrc} alt="Charles Logo" width={120} height={40} className="h-6 w-auto" />
+							<Image src={logoSrc} alt="Roo Code Logo" width={120} height={40} className="h-6 w-auto" />
 						</div>
 						<p className="max-w-md text-sm leading-6 text-muted-foreground md:pr-16 lg:pr-32">
 							Empowering developers to build better software faster with AI-powered tools and insights.
 						</p>
 
-						{/* Made with Charles */}
+						{/* Made with Roo Code */}
 						<a
 							href="https://roocode.com"
 							target="_blank"
@@ -49,7 +55,7 @@ export function Footer() {
 							className="inline-flex items-center space-x-2 group">
 							<Image
 								src={resolvedTheme === "light" ? "/RooCode-Badge-blk.svg" : "/RooCode-Badge-white.svg"}
-								alt="Made with Charles"
+								alt="Made with Roo Code"
 								width={120}
 								height={40}
 								className="h-8 w-auto opacity-70 transition-opacity group-hover:opacity-100"
@@ -64,16 +70,103 @@ export function Footer() {
 								<ul className="mt-6 space-y-4">
 									<li>
 										<ScrollButton
-											targetId="features"
+											targetId="product"
 											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
 											Features
 										</ScrollButton>
+									</li>
+									<li>
+										<div className="relative z-10" ref={cloudDropdownRef}>
+											<button
+												onClick={() => setCloudDropdownOpen(!cloudDropdownOpen)}
+												className="flex items-center text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground"
+												aria-expanded={cloudDropdownOpen}
+												aria-haspopup="true">
+												<span>Cloud Agents</span>
+												<ChevronDown
+													className={`ml-1 h-4 w-4 transition-transform ${cloudDropdownOpen ? "rotate-180" : ""}`}
+												/>
+											</button>
+
+											{cloudDropdownOpen && (
+												<div className="absolute z-50 mt-2 w-44 origin-top-left scale-95 rounded-md border border-border bg-background shadow-lg ring-1 ring-black ring-opacity-5 transition-all duration-100 ease-out data-[state=open]:scale-100 max-xs:right-0 max-xs:origin-top-right xs:left-0">
+													<div className="flex flex-col gap-1 p-2 text-sm text-muted-foreground">
+														<Link
+															href="/cloud"
+															onClick={() => setCloudDropdownOpen(false)}
+															className="rounded-md px-3 py-2 transition-colors hover:bg-accent/50 hover:text-foreground">
+															Cloud
+														</Link>
+														<Link
+															href="/reviewer"
+															onClick={() => setCloudDropdownOpen(false)}
+															className="rounded-md px-3 py-2 transition-colors hover:bg-accent/50 hover:text-foreground">
+															PR Reviewer
+														</Link>
+														<Link
+															href="/pr-fixer"
+															onClick={() => setCloudDropdownOpen(false)}
+															className="rounded-md px-3 py-2 transition-colors hover:bg-accent/50 hover:text-foreground">
+															PR Fixer
+														</Link>
+													</div>
+												</div>
+											)}
+										</div>
+									</li>
+									<li>
+										<a
+											href={EXTERNAL_LINKS.DOCUMENTATION}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
+											Docs
+										</a>
+									</li>
+									<li>
+										<a
+											href={EXTERNAL_LINKS.CHANGELOG}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
+											Changelog
+										</a>
+									</li>
+									<li>
+										<a
+											href={EXTERNAL_LINKS.TESTIMONIALS}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
+											Testimonials
+										</a>
 									</li>
 									<li>
 										<Link
 											href="/enterprise"
 											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
 											Enterprise
+										</Link>
+									</li>
+									<li>
+										<a
+											href={EXTERNAL_LINKS.SECURITY}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
+											Security Center
+										</a>
+									</li>
+								</ul>
+							</div>
+							<div className="mt-10 md:mt-0">
+								<h3 className="text-sm font-semibold uppercase leading-6 text-foreground">Resources</h3>
+								<ul className="mt-6 space-y-4">
+									<li>
+										<Link
+											href="/blog"
+											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
+											Blog
 										</Link>
 									</li>
 									<li>
@@ -87,52 +180,11 @@ export function Footer() {
 									</li>
 									<li>
 										<a
-											href={EXTERNAL_LINKS.SECURITY}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
-											Security
-										</a>
-									</li>
-									<li>
-										<a
-											href={EXTERNAL_LINKS.INTEGRATIONS}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
-											Integrations
-										</a>
-									</li>
-									<li>
-										<a
-											href={EXTERNAL_LINKS.CHANGELOG}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
-											Changelog
-										</a>
-									</li>
-								</ul>
-							</div>
-							<div className="mt-10 md:mt-0">
-								<h3 className="text-sm font-semibold uppercase leading-6 text-foreground">Resources</h3>
-								<ul className="mt-6 space-y-4">
-									<li>
-										<a
 											href={EXTERNAL_LINKS.FAQ}
 											target="_blank"
 											rel="noopener noreferrer"
 											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
 											FAQ
-										</a>
-									</li>
-									<li>
-										<a
-											href={EXTERNAL_LINKS.DOCUMENTATION}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
-											Docs
 										</a>
 									</li>
 									<li>
@@ -195,24 +247,6 @@ export function Footer() {
 										</a>
 									</li>
 									<li>
-										<a
-											href={EXTERNAL_LINKS.BLOG}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
-											Blog
-										</a>
-									</li>
-									<li>
-										<a
-											href={EXTERNAL_LINKS.TESTIMONIALS}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
-											Testimonials
-										</a>
-									</li>
-									<li>
 										<Link
 											href="/terms"
 											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
@@ -249,12 +283,26 @@ export function Footer() {
 															href={INTERNAL_LINKS.PRIVACY_POLICY_WEBSITE}
 															onClick={() => setPrivacyDropdownOpen(false)}
 															className="rounded-md px-3 py-2 transition-colors hover:bg-accent/50 hover:text-foreground">
-															Charles Cloud
+															Roo Code Cloud
 														</Link>
 													</div>
 												</div>
 											)}
 										</div>
+									</li>
+									<li>
+										<Link
+											href="/legal/cookies"
+											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
+											Cookie Policy
+										</Link>
+									</li>
+									<li>
+										<Link
+											href="/legal/subprocessors"
+											className="text-sm leading-6 text-muted-foreground transition-colors hover:text-foreground">
+											Subprocessors
+										</Link>
 									</li>
 								</ul>
 							</div>
@@ -341,7 +389,7 @@ export function Footer() {
 
 				<div className="mt-16 flex border-t border-border pt-8 sm:mt-20 lg:mt-24">
 					<p className="mx-auto text-sm leading-5 text-muted-foreground">
-						&copy; {new Date().getFullYear()} Charles. All rights reserved.
+						&copy; {new Date().getFullYear()} Roo Code. All rights reserved.
 					</p>
 				</div>
 			</div>

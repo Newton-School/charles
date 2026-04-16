@@ -488,53 +488,6 @@ describe("ChatView - Auto Approval Tests", () => {
 		})
 	})
 
-	it("auto-approves browser actions when enabled", async () => {
-		renderChatView()
-
-		// First hydrate state with initial task
-		mockPostMessage({
-			alwaysAllowBrowser: true,
-			autoApprovalEnabled: true,
-			clineMessages: [
-				{
-					type: "say",
-					say: "task",
-					ts: Date.now() - 2000,
-					text: "Initial task",
-				},
-			],
-		})
-
-		// Then send the browser action ask message
-		mockPostMessage({
-			alwaysAllowBrowser: true,
-			autoApprovalEnabled: true,
-			clineMessages: [
-				{
-					type: "say",
-					say: "task",
-					ts: Date.now() - 2000,
-					text: "Initial task",
-				},
-				{
-					type: "ask",
-					ask: "browser_action_launch",
-					ts: Date.now(),
-					text: JSON.stringify({ action: "launch", url: "http://example.com" }),
-					partial: false,
-				},
-			],
-		})
-
-		// Wait for the auto-approval message
-		await waitFor(() => {
-			expect(vscode.postMessage).toHaveBeenCalledWith({
-				type: "askResponse",
-				askResponse: "yesButtonClicked",
-			})
-		})
-	})
-
 	it("auto-approves mode switch when enabled", async () => {
 		renderChatView()
 

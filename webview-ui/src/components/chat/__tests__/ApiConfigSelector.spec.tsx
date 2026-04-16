@@ -1,8 +1,7 @@
-import React from "react"
 import { render, screen, fireEvent, waitFor } from "@/utils/test-utils"
-import { describe, test, expect, vi, beforeEach } from "vitest"
-import { ApiConfigSelector } from "../ApiConfigSelector"
 import { vscode } from "@/utils/vscode"
+
+import { ApiConfigSelector } from "../ApiConfigSelector"
 
 // Mock the dependencies
 vi.mock("@/utils/vscode", () => ({
@@ -19,6 +18,21 @@ vi.mock("@/i18n/TranslationContext", () => ({
 
 vi.mock("@/components/ui/hooks/useRooPortal", () => ({
 	useRooPortal: () => document.body,
+}))
+
+// Mock the ExtensionStateContext
+vi.mock("@/context/ExtensionStateContext", () => ({
+	useExtensionState: () => ({
+		apiConfiguration: {
+			apiProvider: "anthropic",
+			apiModelId: "claude-3-opus-20240229",
+		},
+	}),
+}))
+
+// Mock the getModelId function from @roo-code/types
+vi.mock("@roo-code/types", () => ({
+	getModelId: (config: any) => config?.apiModelId || undefined,
 }))
 
 // Mock Popover components to be testable
@@ -52,12 +66,14 @@ describe("ApiConfigSelector", () => {
 		title: "API Config",
 		onChange: mockOnChange,
 		listApiConfigMeta: [
-			{ id: "config1", name: "Config 1" },
-			{ id: "config2", name: "Config 2" },
-			{ id: "config3", name: "Config 3" },
+			{ id: "config1", name: "Config 1", modelId: "claude-3-opus-20240229" },
+			{ id: "config2", name: "Config 2", modelId: "gpt-4" },
+			{ id: "config3", name: "Config 3", modelId: "claude-3-sonnet-20240229" },
 		],
 		pinnedApiConfigs: { config1: true },
 		togglePinnedApiConfig: mockTogglePinnedApiConfig,
+		lockApiConfigAcrossModes: false,
+		onToggleLockApiConfig: vi.fn(),
 	}
 
 	beforeEach(() => {
@@ -70,15 +86,6 @@ describe("ApiConfigSelector", () => {
 		const trigger = screen.getByTestId("dropdown-trigger")
 		expect(trigger).toBeInTheDocument()
 		expect(trigger).toHaveTextContent("Config 1")
-	})
-
-	test("renders with ChevronUp icon", () => {
-		render(<ApiConfigSelector {...defaultProps} />)
-
-		const trigger = screen.getByTestId("dropdown-trigger")
-		// Check for the icon by looking for the svg element (ChevronUp from lucide-react renders as svg)
-		const icon = trigger.querySelector("svg")
-		expect(icon).toBeInTheDocument()
 	})
 
 	test("handles disabled state correctly", () => {
@@ -120,13 +127,13 @@ describe("ApiConfigSelector", () => {
 		const props = {
 			...defaultProps,
 			listApiConfigMeta: [
-				{ id: "config1", name: "Config 1" },
-				{ id: "config2", name: "Config 2" },
-				{ id: "config3", name: "Config 3" },
-				{ id: "config4", name: "Config 4" },
-				{ id: "config5", name: "Config 5" },
-				{ id: "config6", name: "Config 6" },
-				{ id: "config7", name: "Config 7" },
+				{ id: "config1", name: "Config 1", modelId: "claude-3-opus-20240229" },
+				{ id: "config2", name: "Config 2", modelId: "gpt-4" },
+				{ id: "config3", name: "Config 3", modelId: "claude-3-sonnet-20240229" },
+				{ id: "config4", name: "Config 4", modelId: "gpt-3.5-turbo" },
+				{ id: "config5", name: "Config 5", modelId: "claude-3-haiku-20240307" },
+				{ id: "config6", name: "Config 6", modelId: "gpt-4-turbo" },
+				{ id: "config7", name: "Config 7", modelId: "claude-2.1" },
 			],
 		}
 		render(<ApiConfigSelector {...props} />)
@@ -154,13 +161,13 @@ describe("ApiConfigSelector", () => {
 		const props = {
 			...defaultProps,
 			listApiConfigMeta: [
-				{ id: "config1", name: "Config 1" },
-				{ id: "config2", name: "Config 2" },
-				{ id: "config3", name: "Config 3" },
-				{ id: "config4", name: "Config 4" },
-				{ id: "config5", name: "Config 5" },
-				{ id: "config6", name: "Config 6" },
-				{ id: "config7", name: "Config 7" },
+				{ id: "config1", name: "Config 1", modelId: "claude-3-opus-20240229" },
+				{ id: "config2", name: "Config 2", modelId: "gpt-4" },
+				{ id: "config3", name: "Config 3", modelId: "claude-3-sonnet-20240229" },
+				{ id: "config4", name: "Config 4", modelId: "gpt-3.5-turbo" },
+				{ id: "config5", name: "Config 5", modelId: "claude-3-haiku-20240307" },
+				{ id: "config6", name: "Config 6", modelId: "gpt-4-turbo" },
+				{ id: "config7", name: "Config 7", modelId: "claude-2.1" },
 			],
 		}
 		render(<ApiConfigSelector {...props} />)
@@ -184,13 +191,13 @@ describe("ApiConfigSelector", () => {
 		const props = {
 			...defaultProps,
 			listApiConfigMeta: [
-				{ id: "config1", name: "Config 1" },
-				{ id: "config2", name: "Config 2" },
-				{ id: "config3", name: "Config 3" },
-				{ id: "config4", name: "Config 4" },
-				{ id: "config5", name: "Config 5" },
-				{ id: "config6", name: "Config 6" },
-				{ id: "config7", name: "Config 7" },
+				{ id: "config1", name: "Config 1", modelId: "claude-3-opus-20240229" },
+				{ id: "config2", name: "Config 2", modelId: "gpt-4" },
+				{ id: "config3", name: "Config 3", modelId: "claude-3-sonnet-20240229" },
+				{ id: "config4", name: "Config 4", modelId: "gpt-3.5-turbo" },
+				{ id: "config5", name: "Config 5", modelId: "claude-3-haiku-20240307" },
+				{ id: "config6", name: "Config 6", modelId: "gpt-4-turbo" },
+				{ id: "config7", name: "Config 7", modelId: "claude-2.1" },
 			],
 		}
 		render(<ApiConfigSelector {...props} />)
@@ -210,13 +217,13 @@ describe("ApiConfigSelector", () => {
 		const props = {
 			...defaultProps,
 			listApiConfigMeta: [
-				{ id: "config1", name: "Config 1" },
-				{ id: "config2", name: "Config 2" },
-				{ id: "config3", name: "Config 3" },
-				{ id: "config4", name: "Config 4" },
-				{ id: "config5", name: "Config 5" },
-				{ id: "config6", name: "Config 6" },
-				{ id: "config7", name: "Config 7" },
+				{ id: "config1", name: "Config 1", modelId: "claude-3-opus-20240229" },
+				{ id: "config2", name: "Config 2", modelId: "gpt-4" },
+				{ id: "config3", name: "Config 3", modelId: "claude-3-sonnet-20240229" },
+				{ id: "config4", name: "Config 4", modelId: "gpt-3.5-turbo" },
+				{ id: "config5", name: "Config 5", modelId: "claude-3-haiku-20240307" },
+				{ id: "config6", name: "Config 6", modelId: "gpt-4-turbo" },
+				{ id: "config7", name: "Config 7", modelId: "claude-2.1" },
 			],
 		}
 		render(<ApiConfigSelector {...props} />)
@@ -263,7 +270,8 @@ describe("ApiConfigSelector", () => {
 		const config1Elements = screen.getAllByText("Config 1")
 		// Find the one that's in the dropdown content (not the trigger)
 		const configInDropdown = config1Elements.find((el) => el.closest('[data-testid="popover-content"]'))
-		const selectedConfigRow = configInDropdown?.closest("div")
+		// Navigate up to find the parent row that contains both the text and the check icon
+		const selectedConfigRow = configInDropdown?.closest(".group")
 		const checkIcon = selectedConfigRow?.querySelector(".codicon-check")
 		expect(checkIcon).toBeInTheDocument()
 	})
@@ -280,13 +288,24 @@ describe("ApiConfigSelector", () => {
 		fireEvent.click(trigger)
 
 		const content = screen.getByTestId("popover-content")
-		const configTexts = content.querySelectorAll(".truncate")
+		// Get all config items by looking for the group class
+		const configRows = content.querySelectorAll(".group")
+
+		// Extract the config names from each row
+		const configNames: string[] = []
+		configRows.forEach((row) => {
+			// Find the first span that's flex-shrink-0 (the profile name)
+			const nameElement = row.querySelector(".flex-1 span.flex-shrink-0")
+			if (nameElement?.textContent) {
+				configNames.push(nameElement.textContent)
+			}
+		})
 
 		// Pinned configs should appear first
-		expect(configTexts[0]).toHaveTextContent("Config 1")
-		expect(configTexts[1]).toHaveTextContent("Config 3")
+		expect(configNames[0]).toBe("Config 1")
+		expect(configNames[1]).toBe("Config 3")
 		// Unpinned config should appear after separator
-		expect(configTexts[2]).toHaveTextContent("Config 2")
+		expect(configNames[2]).toBe("Config 2")
 	})
 
 	test("toggles pin status when pin button is clicked", () => {
@@ -296,8 +315,10 @@ describe("ApiConfigSelector", () => {
 		fireEvent.click(trigger)
 
 		// Find the pin button for Config 2 (unpinned)
-		const config2Row = screen.getByText("Config 2").closest("div")
-		const pinButton = config2Row?.querySelector("button")
+		const config2Row = screen.getByText("Config 2").closest(".group")
+		// Find the button with the pin icon (it's the second button, first is the row itself)
+		const buttons = config2Row?.querySelectorAll("button")
+		const pinButton = Array.from(buttons || []).find((btn) => btn.querySelector(".codicon-pin"))
 
 		if (pinButton) {
 			fireEvent.click(pinButton)
@@ -332,13 +353,13 @@ describe("ApiConfigSelector", () => {
 		const props = {
 			...defaultProps,
 			listApiConfigMeta: [
-				{ id: "config1", name: "Config 1" },
-				{ id: "config2", name: "Config 2" },
-				{ id: "config3", name: "Config 3" },
-				{ id: "config4", name: "Config 4" },
-				{ id: "config5", name: "Config 5" },
-				{ id: "config6", name: "Config 6" },
-				{ id: "config7", name: "Config 7" },
+				{ id: "config1", name: "Config 1", modelId: "claude-3-opus-20240229" },
+				{ id: "config2", name: "Config 2", modelId: "gpt-4" },
+				{ id: "config3", name: "Config 3", modelId: "claude-3-sonnet-20240229" },
+				{ id: "config4", name: "Config 4", modelId: "gpt-3.5-turbo" },
+				{ id: "config5", name: "Config 5", modelId: "claude-3-haiku-20240307" },
+				{ id: "config6", name: "Config 6", modelId: "gpt-4-turbo" },
+				{ id: "config7", name: "Config 7", modelId: "claude-2.1" },
 			],
 		}
 		render(<ApiConfigSelector {...props} />)
@@ -389,13 +410,13 @@ describe("ApiConfigSelector", () => {
 		const props = {
 			...defaultProps,
 			listApiConfigMeta: [
-				{ id: "config1", name: "Config 1" },
-				{ id: "config2", name: "Config 2" },
-				{ id: "config3", name: "Config 3" },
-				{ id: "config4", name: "Config 4" },
-				{ id: "config5", name: "Config 5" },
-				{ id: "config6", name: "Config 6" },
-				{ id: "config7", name: "Config 7" },
+				{ id: "config1", name: "Config 1", modelId: "claude-3-opus-20240229" },
+				{ id: "config2", name: "Config 2", modelId: "gpt-4" },
+				{ id: "config3", name: "Config 3", modelId: "claude-3-sonnet-20240229" },
+				{ id: "config4", name: "Config 4", modelId: "gpt-3.5-turbo" },
+				{ id: "config5", name: "Config 5", modelId: "claude-3-haiku-20240307" },
+				{ id: "config6", name: "Config 6", modelId: "gpt-4-turbo" },
+				{ id: "config7", name: "Config 7", modelId: "claude-2.1" },
 			],
 		}
 		render(<ApiConfigSelector {...props} />)
@@ -415,5 +436,105 @@ describe("ApiConfigSelector", () => {
 
 		// Search value should be maintained
 		expect(searchInput.value).toBe("Config")
+	})
+
+	test("pinned configs remain fixed at top while unpinned configs scroll", () => {
+		// Create a list with many configs to test scrolling
+		const manyConfigs = Array.from({ length: 15 }, (_, i) => ({
+			id: `config${i + 1}`,
+			name: `Config ${i + 1}`,
+			modelId: `model-${i + 1}`,
+		}))
+
+		const props = {
+			...defaultProps,
+			listApiConfigMeta: manyConfigs,
+			pinnedApiConfigs: {
+				config1: true,
+				config2: true,
+				config3: true,
+			},
+		}
+
+		render(<ApiConfigSelector {...props} />)
+
+		const trigger = screen.getByTestId("dropdown-trigger")
+		fireEvent.click(trigger)
+
+		const popoverContent = screen.getByTestId("popover-content")
+
+		// Should have a single scroll container with max-h-[300px] and overflow-y-auto
+		const scrollContainer = popoverContent.querySelector(".max-h-\\[300px\\].overflow-y-auto")
+		expect(scrollContainer).toBeInTheDocument()
+
+		// Check for pinned configs sticky header
+		const pinnedStickyHeader = scrollContainer?.querySelector(".sticky.top-0.z-10.bg-vscode-dropdown-background")
+		expect(pinnedStickyHeader).toBeInTheDocument()
+		expect(pinnedStickyHeader).toHaveAttribute("aria-label", "Pinned configurations")
+
+		// Check for Config 1, 2, 3 being visible in the sticky header (pinned)
+		expect(screen.getAllByText("Config 1").length).toBeGreaterThan(0)
+		expect(screen.getAllByText("Config 2").length).toBeGreaterThan(0)
+		expect(screen.getAllByText("Config 3").length).toBeGreaterThan(0)
+
+		// Verify pinned container contains the pinned configs
+		if (pinnedStickyHeader) {
+			const elements = pinnedStickyHeader.querySelectorAll(".flex-shrink-0")
+			const pinnedConfigTexts = Array.from(elements)
+				.map((el) => (el as Element).textContent)
+				.filter((text) => text?.startsWith("Config"))
+
+			expect(pinnedConfigTexts).toContain("Config 1")
+			expect(pinnedConfigTexts).toContain("Config 2")
+			expect(pinnedConfigTexts).toContain("Config 3")
+		}
+
+		// Check for unpinned configs section
+		const unpinnedSection = scrollContainer?.querySelector('[aria-label="All configurations"]')
+		expect(unpinnedSection).toBeInTheDocument()
+
+		// Verify separator exists as border on pinned section when unpinned configs exist
+		expect(pinnedStickyHeader).toHaveClass("border-b")
+	})
+
+	test("displays all configs in scrollable container when no configs are pinned", () => {
+		const manyConfigs = Array.from({ length: 10 }, (_, i) => ({
+			id: `config${i + 1}`,
+			name: `Config ${i + 1}`,
+			modelId: `model-${i + 1}`,
+		}))
+
+		const props = {
+			...defaultProps,
+			listApiConfigMeta: manyConfigs,
+			pinnedApiConfigs: {}, // No pinned configs
+		}
+
+		render(<ApiConfigSelector {...props} />)
+
+		const trigger = screen.getByTestId("dropdown-trigger")
+		fireEvent.click(trigger)
+
+		const popoverContent = screen.getByTestId("popover-content")
+
+		// Should have a single scroll container with max-h-[300px] and overflow-y-auto
+		const scrollContainer = popoverContent.querySelector(".max-h-\\[300px\\].overflow-y-auto")
+		expect(scrollContainer).toBeInTheDocument()
+
+		// No pinned section should exist when no configs are pinned
+		const pinnedSection = scrollContainer?.querySelector(".sticky.top-0")
+		expect(pinnedSection).not.toBeInTheDocument()
+
+		// Should have unpinned configs section with all configs
+		const unpinnedSection = scrollContainer?.querySelector('[aria-label="All configurations"]')
+		expect(unpinnedSection).toBeInTheDocument()
+
+		// All configs should be in the unpinned section
+		const allConfigRows = unpinnedSection?.querySelectorAll(".group")
+		expect(allConfigRows?.length).toBe(10)
+
+		// No separator should exist when no pinned configs (no sticky header exists)
+		const stickyHeader = scrollContainer?.querySelector(".sticky.top-0")
+		expect(stickyHeader).not.toBeInTheDocument()
 	})
 })

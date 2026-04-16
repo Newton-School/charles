@@ -1,4 +1,4 @@
-import { CloudUserInfo, OrganizationAllowList, ShareVisibility } from "@roo-code/cloud"
+import type { CloudUserInfo, OrganizationAllowList, ShareVisibility } from "@roo-code/types"
 
 export type { CloudUserInfo, OrganizationAllowList, ShareVisibility }
 

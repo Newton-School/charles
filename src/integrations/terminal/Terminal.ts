@@ -1,7 +1,8 @@
+import * as path from "path"
 import * as vscode from "vscode"
 import pWaitFor from "p-wait-for"
-import * as path from "path"
 
+import { Package } from "../../shared/package"
 import type { RooTerminalCallbacks, RooTerminalProcessResultPromise } from "./types"
 import { BaseTerminal } from "./BaseTerminal"
 import { TerminalProcess } from "./TerminalProcess"
@@ -9,6 +10,8 @@ import { ShellIntegrationManager } from "./ShellIntegrationManager"
 import { mergePromise } from "./mergePromise"
 
 export class Terminal extends BaseTerminal {
+	private static readonly displayName = "Charles"
+
 	public terminal: vscode.Terminal
 
 	public cmdCounter: number = 0
@@ -96,6 +99,21 @@ export class Terminal extends BaseTerminal {
 		})
 
 		return mergePromise(process, promise)
+	}
+
+	private static getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
+		const extensionUri = vscode.extensions.getExtension(`${Package.publisher}.${Package.name}`)?.extensionUri
+		const lightIconUri = extensionUri
+			? vscode.Uri.joinPath(extensionUri, "assets", "icons", "icon.svg")
+			: vscode.Uri.file(path.join(__dirname, "..", "..", "..", "assets", "icons", "icon.svg"))
+		const darkIconUri = extensionUri
+			? vscode.Uri.joinPath(extensionUri, "assets", "icons", "icon.png")
+			: vscode.Uri.file(path.join(__dirname, "..", "..", "..", "assets", "icons", "icon.png"))
+
+		return {
+			light: lightIconUri,
+			dark: darkIconUri,
+		}
 	}
 
 	/**

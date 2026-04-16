@@ -4,13 +4,10 @@ interface AutoApprovalToggles {
 	alwaysAllowReadOnly?: boolean
 	alwaysAllowWrite?: boolean
 	alwaysAllowExecute?: boolean
-	alwaysAllowBrowser?: boolean
 	alwaysAllowMcp?: boolean
 	alwaysAllowModeSwitch?: boolean
 	alwaysAllowSubtasks?: boolean
-	alwaysApproveResubmit?: boolean
 	alwaysAllowFollowupQuestions?: boolean
-	alwaysAllowUpdateTodoList?: boolean
 }
 
 export function useAutoApprovalState(toggles: AutoApprovalToggles, autoApprovalEnabled?: boolean) {
@@ -19,8 +16,8 @@ export function useAutoApprovalState(toggles: AutoApprovalToggles, autoApprovalE
 	}, [toggles])
 
 	const effectiveAutoApprovalEnabled = useMemo(() => {
-		return hasEnabledOptions && (autoApprovalEnabled ?? false)
-	}, [hasEnabledOptions, autoApprovalEnabled])
+		return autoApprovalEnabled ?? false
+	}, [autoApprovalEnabled])
 
 	return {
 		hasEnabledOptions,

@@ -1,20 +1,31 @@
 import * as vscode from "vscode"
+import { Ignore } from "ignore"
+
+import type { EmbedderProvider } from "@roo-code/types"
+import { TelemetryService } from "@roo-code/telemetry"
+import { TelemetryEventName } from "@roo-code/types"
+
+import { t } from "../../i18n"
+
+import { getDefaultModelId, getModelDimension } from "../../shared/embeddingModels"
+import { Package } from "../../shared/package"
+
+import { RooIgnoreController } from "../../core/ignore/RooIgnoreController"
+
 import { OpenAiEmbedder } from "./embedders/openai"
 import { CodeIndexOllamaEmbedder } from "./embedders/ollama"
 import { OpenAICompatibleEmbedder } from "./embedders/openai-compatible"
 import { GeminiEmbedder } from "./embedders/gemini"
 import { MistralEmbedder } from "./embedders/mistral"
-import { EmbedderProvider, getDefaultModelId, getModelDimension } from "../../shared/embeddingModels"
+import { VercelAiGatewayEmbedder } from "./embedders/vercel-ai-gateway"
+import { BedrockEmbedder } from "./embedders/bedrock"
+import { OpenRouterEmbedder } from "./embedders/openrouter"
 import { QdrantVectorStore } from "./vector-store/qdrant-client"
 import { codeParser, DirectoryScanner, FileWatcher } from "./processors"
 import { ICodeParser, IEmbedder, IFileWatcher, IVectorStore } from "./interfaces"
 import { CodeIndexConfigManager } from "./config-manager"
 import { CacheManager } from "./cache-manager"
-import { RooIgnoreController } from "../../core/ignore/RooIgnoreController"
-import { Ignore } from "ignore"
-import { t } from "../../i18n"
-import { TelemetryService } from "@roo-code/telemetry"
-import { TelemetryEventName } from "@roo-code/types"
+import { BATCH_SEGMENT_THRESHOLD } from "./constants"
 
 /**
  * Factory class responsible for creating and configuring code indexing service dependencies.
@@ -71,6 +82,27 @@ export class CodeIndexServiceFactory {
 				throw new Error(t("embeddings:serviceFactory.mistralConfigMissing"))
 			}
 			return new MistralEmbedder(config.mistralOptions.apiKey, config.modelId)
+		} else if (provider === "vercel-ai-gateway") {
+			if (!config.vercelAiGatewayOptions?.apiKey) {
+				throw new Error(t("embeddings:serviceFactory.vercelAiGatewayConfigMissing"))
+			}
+			return new VercelAiGatewayEmbedder(config.vercelAiGatewayOptions.apiKey, config.modelId)
+		} else if (provider === "bedrock") {
+			// Only region is required for Bedrock (profile is optional)
+			if (!config.bedrockOptions?.region) {
+				throw new Error(t("embeddings:serviceFactory.bedrockConfigMissing"))
+			}
+			return new BedrockEmbedder(config.bedrockOptions.region, config.bedrockOptions.profile, config.modelId)
+		} else if (provider === "openrouter") {
+			if (!config.openRouterOptions?.apiKey) {
+				throw new Error(t("embeddings:serviceFactory.openRouterConfigMissing"))
+			}
+			return new OpenRouterEmbedder(
+				config.openRouterOptions.apiKey,
+				config.modelId,
+				undefined, // maxItemTokens
+				config.openRouterOptions.specificProvider,
+			)
 		}
 
 		throw new Error(
@@ -150,7 +182,17 @@ export class CodeIndexServiceFactory {
 		parser: ICodeParser,
 		ignoreInstance: Ignore,
 	): DirectoryScanner {
-		return new DirectoryScanner(embedder, vectorStore, parser, this.cacheManager, ignoreInstance)
+		// Get the configurable batch size from VSCode settings
+		let batchSize: number
+		try {
+			batchSize = vscode.workspace
+				.getConfiguration(Package.name)
+				.get<number>("codeIndex.embeddingBatchSize", BATCH_SEGMENT_THRESHOLD)
+		} catch {
+			// In test environment, vscode.workspace might not be available
+			batchSize = BATCH_SEGMENT_THRESHOLD
+		}
+		return new DirectoryScanner(embedder, vectorStore, parser, this.cacheManager, ignoreInstance, batchSize)
 	}
 
 	/**
@@ -164,6 +206,16 @@ export class CodeIndexServiceFactory {
 		ignoreInstance: Ignore,
 		rooIgnoreController?: RooIgnoreController,
 	): IFileWatcher {
+		// Get the configurable batch size from VSCode settings
+		let batchSize: number
+		try {
+			batchSize = vscode.workspace
+				.getConfiguration(Package.name)
+				.get<number>("codeIndex.embeddingBatchSize", BATCH_SEGMENT_THRESHOLD)
+		} catch {
+			// In test environment, vscode.workspace might not be available
+			batchSize = BATCH_SEGMENT_THRESHOLD
+		}
 		return new FileWatcher(
 			this.workspacePath,
 			context,
@@ -172,6 +224,7 @@ export class CodeIndexServiceFactory {
 			vectorStore,
 			ignoreInstance,
 			rooIgnoreController,
+			batchSize,
 		)
 	}
 
