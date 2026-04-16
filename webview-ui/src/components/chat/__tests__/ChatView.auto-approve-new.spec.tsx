@@ -113,7 +113,6 @@ describe("ChatView - New Auto Approval Logic Tests", () => {
 				alwaysAllowReadOnly: false, // But no sub-options are enabled
 				alwaysAllowWrite: false,
 				alwaysAllowExecute: false,
-				alwaysAllowBrowser: false,
 				alwaysAllowModeSwitch: false,
 				clineMessages: [
 					{
@@ -131,7 +130,6 @@ describe("ChatView - New Auto Approval Logic Tests", () => {
 				alwaysAllowReadOnly: false,
 				alwaysAllowWrite: false,
 				alwaysAllowExecute: false,
-				alwaysAllowBrowser: false,
 				alwaysAllowModeSwitch: false,
 				clineMessages: [
 					{
@@ -195,52 +193,6 @@ describe("ChatView - New Auto Approval Logic Tests", () => {
 						ask: "tool",
 						ts: Date.now(),
 						text: JSON.stringify({ tool: "editedExistingFile", path: "test.txt" }),
-						partial: false,
-					},
-				],
-			})
-
-			// Wait and verify no auto-approval message was sent
-			await new Promise((resolve) => setTimeout(resolve, 100))
-			expect(vscode.postMessage).not.toHaveBeenCalledWith({
-				type: "askResponse",
-				askResponse: "yesButtonClicked",
-			})
-		})
-
-		it("should NOT auto-approve browser actions when only master is enabled", async () => {
-			renderChatView()
-
-			// First hydrate state with initial task
-			mockPostMessage({
-				autoApprovalEnabled: true, // Master is enabled
-				alwaysAllowBrowser: false, // Browser is not enabled
-				clineMessages: [
-					{
-						type: "say",
-						say: "task",
-						ts: Date.now() - 2000,
-						text: "Initial task",
-					},
-				],
-			})
-
-			// Then send a browser action ask message
-			mockPostMessage({
-				autoApprovalEnabled: true,
-				alwaysAllowBrowser: false,
-				clineMessages: [
-					{
-						type: "say",
-						say: "task",
-						ts: Date.now() - 2000,
-						text: "Initial task",
-					},
-					{
-						type: "ask",
-						ask: "browser_action_launch",
-						ts: Date.now(),
-						text: JSON.stringify({ action: "launch", url: "http://example.com" }),
 						partial: false,
 					},
 				],
@@ -383,7 +335,6 @@ describe("ChatView - New Auto Approval Logic Tests", () => {
 				alwaysAllowReadOnly: false, // All sub-options now false
 				alwaysAllowWrite: false,
 				alwaysAllowExecute: false,
-				alwaysAllowBrowser: false,
 				alwaysAllowModeSwitch: false,
 				clineMessages: [
 					{
@@ -421,7 +372,6 @@ describe("ChatView - New Auto Approval Logic Tests", () => {
 				alwaysAllowWrite: false,
 				alwaysAllowWriteOutsideWorkspace: false,
 				alwaysAllowExecute: false,
-				alwaysAllowBrowser: false,
 				alwaysAllowModeSwitch: false,
 				clineMessages: [
 					{
@@ -449,7 +399,6 @@ describe("ChatView - New Auto Approval Logic Tests", () => {
 					alwaysAllowReadOnly: false,
 					alwaysAllowWrite: false,
 					alwaysAllowExecute: false,
-					alwaysAllowBrowser: false,
 					alwaysAllowModeSwitch: false,
 					clineMessages: [
 						{

@@ -2,19 +2,19 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://roocode.com"
 
 export const SEO = {
 	url: SITE_URL,
-	name: "Charles",
-	title: "Charles – Your AI-Powered Dev Team in VS Code",
+	name: "Roo Code",
+	title: "Roo Code – The AI dev team that gets things done",
 	description:
-		"Charles puts an entire AI dev team right in your editor, outpacing closed tools with deep project-wide context, multi-step agentic coding, and unmatched developer-centric flexibility.",
+		"Roo Code puts an entire AI dev team right in your editor, outpacing closed tools with deep project-wide context, multi-step agentic coding, and unmatched developer-centric flexibility.",
 	locale: "en_US",
 	ogImage: {
-		url: "/android-chrome-512x512.png",
-		width: 512,
-		height: 512,
-		alt: "Charles Logo",
+		url: "/opengraph.png",
+		width: 1200,
+		height: 600,
+		alt: "Roo Code",
 	},
 	keywords: [
-		"Charles",
+		"Roo Code",
 		"AI coding agent",
 		"VS Code extension",
 		"AI pair programmer",

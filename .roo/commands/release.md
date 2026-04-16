@@ -1,6 +1,7 @@
 ---
 description: "Create a new release of the Roo Code extension"
 argument-hint: patch | minor | major
+mode: code
 ---
 
 1. Identify the SHA corresponding to the most recent release using GitHub CLI: `gh release view --json tagName,targetCommitish,publishedAt`
@@ -16,25 +17,29 @@ argument-hint: patch | minor | major
 [list of changes]
 ```
 
-- Always include contributor attribution using format: (thanks @username!)
-- For PRs that close issues, also include the issue number and reporter: "- Fix: Description (#123 by @reporter, PR by @contributor)"
-- For PRs without linked issues, use the standard format: "- Add support for feature (thanks @contributor!)"
+- Always include contributor attribution and the PR number: use "(PR #<prNumber> by @username)".
+- For PRs that close issues, include both the issue number and the PR number and authors: "- Fix: Description (#123 by @reporter, PR #456 by @contributor)"
+- For PRs without linked issues, include the PR number and author: "- Add support for feature (PR #456 by @contributor)"
 - Provide brief descriptions of each item to explain the change
 - Order the list from most important to least important
 - Example formats:
-    - With issue: "- Fix: Resolve memory leak in extension (#456 by @issueReporter, PR by @prAuthor)"
-    - Without issue: "- Add support for Gemini 2.5 Pro caching (thanks @contributor!)"
+    - With issue: "- Fix: Resolve memory leak in extension (#456 by @issueReporter, PR #789 by @prAuthor)"
+    - Without issue: "- Add support for Gemini 2.5 Pro caching (PR #789 by @contributor)"
 - CRITICAL: Include EVERY SINGLE PR in the changeset - don't assume you know which ones are important. Count the total PRs to verify completeness and cross-reference the list to ensure nothing is missed.
 
-6. If a major or minor release:
+6. If the generate_image tool is available, create a release image at `releases/[version]-release.png`
+    - The image should feature a realistic-looking kangaroo doing something human-like that relates to the main highlight of the release
+    - Pass `releases/template.png` as the reference image for aspect ratio and kangaroo style
+    - Add the generated image to .changeset/v[version].md before the list of changes with format: `![X.Y.Z Release - Description](/releases/X.Y.Z-release.png)`
+7. If a major or minor release:
     - Ask the user what the three most important areas to highlight are in the release
     - Update the English version relevant announcement files and documentation (webview-ui/src/components/chat/Announcement.tsx, README.md, and the `latestAnnouncementId` in src/core/webview/ClineProvider.ts)
     - Ask the user to confirm that the English version looks good to them before proceeding
     - Use the new_task tool to create a subtask in `translate` mode with detailed instructions of which content needs to be translated into all supported languages (The READMEs as well as the translation strings)
-7. Create a new branch for the release preparation: `git checkout -b release/v[version]`
-8. Commit and push the changeset file and any documentation updates to the repository: `git add . && git commit -m "chore: add changeset for v[version]" && git push origin release/v[version]`
-9. Create a pull request for the release: `gh pr create --title "Release v[version]" --body "Release preparation for v[version]. This PR includes the changeset and any necessary documentation updates." --base main --head release/v[version]`
-10. The GitHub Actions workflow will automatically:
+8. Create a new branch for the release preparation: `git checkout -b release/v[version]`
+9. Commit and push the changeset file and any documentation updates to the repository: `git add . && git commit -m "chore: add changeset for v[version]" && git push origin release/v[version]`
+10. Create a pull request for the release: `gh pr create --title "Release v[version]" --body "Release preparation for v[version]. This PR includes the changeset and any necessary documentation updates." --base main --head release/v[version]`
+11. The GitHub Actions workflow will automatically:
     - Create a version bump PR when changesets are merged to main
     - Update the CHANGELOG.md with proper formatting
     - Publish the release when the version bump PR is merged

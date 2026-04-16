@@ -1,7 +1,6 @@
-import type { ProviderSettings } from "@roo-code/types"
+import type { ProviderSettings, RouterModels } from "@roo-code/types"
 
 import type { OrganizationAllowList } from "@roo/cloud"
-import { RouterModels } from "@roo/api"
 
 import { getModelValidationError, validateApiConfigurationExcludingModelErrors } from "../validate"
 
@@ -25,22 +24,13 @@ describe("Model Validation Functions", () => {
 				outputPrice: 5.0,
 			},
 		},
-		glama: {
-			"valid-model": {
-				maxTokens: 8192,
-				contextWindow: 200000,
-				supportsImages: true,
-				supportsPromptCache: false,
-				inputPrice: 3.0,
-				outputPrice: 15.0,
-			},
-		},
 		requesty: {},
+		roo: {},
 		unbound: {},
 		litellm: {},
 		ollama: {},
 		lmstudio: {},
-		"io-intelligence": {},
+		poe: {},
 		"vercel-ai-gateway": {},
 	}
 
@@ -88,26 +78,6 @@ describe("Model Validation Functions", () => {
 
 			const result = getModelValidationError(config, mockRouterModels, restrictiveOrganization)
 			expect(result).toContain("model")
-		})
-
-		it("returns undefined for valid Glama model", () => {
-			const config: ProviderSettings = {
-				apiProvider: "glama",
-				glamaModelId: "valid-model",
-			}
-
-			const result = getModelValidationError(config, mockRouterModels, allowAllOrganization)
-			expect(result).toBeUndefined()
-		})
-
-		it("returns error for invalid Glama model", () => {
-			const config: ProviderSettings = {
-				apiProvider: "glama",
-				glamaModelId: "invalid-model",
-			}
-
-			const result = getModelValidationError(config, mockRouterModels, allowAllOrganization)
-			expect(result).toBeUndefined()
 		})
 
 		it("returns undefined for OpenAI models when no router models provided", () => {
@@ -188,26 +158,6 @@ describe("Model Validation Functions", () => {
 				restrictiveOrganization,
 			)
 			expect(result).toBeUndefined() // Should exclude model-specific org errors
-		})
-
-		it("returns undefined for valid IO Intelligence model", () => {
-			const config: ProviderSettings = {
-				apiProvider: "io-intelligence",
-				glamaModelId: "valid-model",
-			}
-
-			const result = getModelValidationError(config, mockRouterModels, allowAllOrganization)
-			expect(result).toBeUndefined()
-		})
-
-		it("returns error for invalid IO Intelligence model", () => {
-			const config: ProviderSettings = {
-				apiProvider: "io-intelligence",
-				glamaModelId: "invalid-model",
-			}
-
-			const result = getModelValidationError(config, mockRouterModels, allowAllOrganization)
-			expect(result).toBeUndefined()
 		})
 	})
 })

@@ -1,101 +1,82 @@
-/* eslint-disable react/jsx-no-target-blank */
-
-import { getVSCodeDownloads } from "@/lib/stats"
-
 import { Button } from "@/components/ui"
-import { AnimatedText } from "@/components/animated-text"
 import {
-	AnimatedBackground,
-	InstallSection,
-	Features,
-	Testimonials,
+	CompanyLogos,
 	FAQSection,
-	CodeExample,
+	Testimonials,
+	CTASection,
+	OptionOverviewSection,
+	PillarsSection,
+	UseExamplesSection,
 } from "@/components/homepage"
+import { EXTERNAL_LINKS } from "@/lib/constants"
+import { ArrowRight } from "lucide-react"
+import { StructuredData } from "@/components/structured-data"
 
 // Invalidate cache when a request comes in, at most once every hour.
 export const revalidate = 3600
 
 export default async function Home() {
-	const downloads = await getVSCodeDownloads()
-
 	return (
 		<>
-			<section className="relative flex h-[calc(125vh-theme(spacing.12))] items-center overflow-hidden md:h-[calc(100svh-theme(spacing.12))] lg:h-[calc(100vh-theme(spacing.12))]">
-				<AnimatedBackground />
-				<div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="grid gap-8 md:gap-12 lg:grid-cols-2 lg:gap-16">
-						<div className="flex flex-col justify-center space-y-6 sm:space-y-8">
-							<div>
-								<h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-									<span className="block">Your</span>
-									<AnimatedText className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-										AI-Powered
-									</AnimatedText>
-									<span className="block">Dev Team, Right in Your Editor.</span>
-								</h1>
-								<p className="mt-4 max-w-md text-base text-muted-foreground sm:mt-6 sm:text-lg">
-									Supercharge your editor with AI that{" "}
-									<AnimatedText className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-										understands your codebase
-									</AnimatedText>
-									, streamlines development, and helps you write, refactor, and debug with ease.
-								</p>
-							</div>
-							<div className="flex flex-col space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0">
-								<Button
-									size="lg"
-									className="w-full hover:bg-gray-200 dark:bg-white dark:text-black sm:w-auto">
-									<a
-										href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline"
-										target="_blank"
-										className="flex w-full items-center justify-center">
-										Install Roo Code
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											className="ml-2 h-4 w-4"
-											viewBox="0 0 20 20"
-											fill="currentColor">
-											<path
-												fillRule="evenodd"
-												d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-												clipRule="evenodd"
-											/>
-										</svg>
-									</a>
-								</Button>
-								<Button
-									variant="outline"
-									size="lg"
-									className="w-full sm:w-auto bg-white/20 dark:bg-white/10 backdrop-blur-sm border border-black/40 dark:border-white/30 hover:border-blue-400 hover:bg-white/30 dark:hover:bg-white/20 hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all duration-300">
-									<a
-										href="https://roocode.com/enterprise"
-										target="_blank"
-										className="flex w-full items-center justify-center">
-										For Enterprise
-									</a>
-								</Button>
-							</div>
+			<StructuredData />
+			<section className="relative flex flex-col items-center overflow-hidden pt-20 pb-12 md:pt-32 md:pb-16">
+				<div className="absolute inset-y-0 left-1/2 h-full w-full max-w-[1200px] -translate-x-1/2 z-1">
+					<div className="absolute left-1/2 top-1/2 h-[400px] w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/10 dark:bg-violet-700/20 blur-[140px]" />
+				</div>
+				<div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+					<h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground max-w-4xl mb-6">
+						Your AI Software Engineering Team is here.
+						<br />
+						<span className="text-muted-foreground">Interactive in the IDE, autonomous in the cloud.</span>
+					</h1>
+					<div className="mt-2 max-w-3xl text-lg text-muted-foreground mb-10 space-y-3">
+						<p>
+							Use the <strong className="text-nowrap">Roo Code Extension</strong> on your computer for
+							full control, or delegate work to your{" "}
+							<strong className="text-nowrap">Roo Code Cloud Agents</strong> from the web, Slack, GitHub
+							or wherever your team is.
+						</p>
+					</div>
+					<div className="flex flex-col sm:flex-row gap-4 mb-16">
+						<div className="flex flex-col items-center gap-2">
+							<Button size="xl" className="w-full">
+								<a
+									href={EXTERNAL_LINKS.MARKETPLACE}
+									target="_blank"
+									rel="noreferrer"
+									className="flex items-center justify-center">
+									Install VS Code Extension
+									<ArrowRight className="ml-2 size-5" />
+								</a>
+							</Button>
+							<span className="text-xs text-muted-foreground">Free and Open Source</span>
 						</div>
-						<div className="relative mt-8 flex items-center justify-center lg:mt-0">
-							<div className="absolute inset-0 flex items-center justify-center">
-								<div className="h-[250px] w-[250px] rounded-full bg-blue-500/20 blur-[100px] sm:h-[300px] sm:w-[300px] md:h-[350px] md:w-[350px]" />
-							</div>
-							<CodeExample />
+
+						<div className="flex flex-col items-center gap-2">
+							<Button size="xl" className="w-full">
+								<a
+									href={EXTERNAL_LINKS.CLOUD_APP_SIGNUP_HOME}
+									className="flex items-center justify-center">
+									Try Cloud for Free
+									<ArrowRight className="ml-2 size-5" />
+								</a>
+							</Button>
+							<span className="text-xs text-muted-foreground">No credit card needed</span>
 						</div>
+					</div>
+
+					<div className="mb-12 px-4">
+						<CompanyLogos />
 					</div>
 				</div>
 			</section>
-			<div id="features">
-				<Features />
-			</div>
-			<div id="testimonials">
-				<Testimonials />
-			</div>
-			<div id="faq">
-				<FAQSection />
-			</div>
-			<InstallSection downloads={downloads} />
+
+			<PillarsSection />
+			<OptionOverviewSection />
+			<UseExamplesSection />
+			<Testimonials />
+			<FAQSection />
+			<CTASection />
 		</>
 	)
 }

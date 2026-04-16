@@ -1,4 +1,4 @@
-# Run Charles Evals
+# Run Roo Code Evals
 
 ### Prerequisites
 
@@ -8,11 +8,11 @@
 
 ### Setup
 
-Clone the Charles repo:
+Clone the Roo Code repo:
 
 ```sh
-git clone https://github.com/Newton-School/charles.git
-cd charles
+git clone https://github.com/RooCodeInc/Roo-Code.git
+cd Roo-Code
 ```
 
 Add your OpenRouter API key:
@@ -29,7 +29,7 @@ Start the evals service:
 pnpm evals
 ```
 
-The initial build process can take a minute or two. Upon success you should see output indicating that a web service is running on localhost:3000:
+The initial build process can take a minute or two. Upon success you should see output indicating that a web service is running on localhost:3446:
 <img width="1182" src="https://github.com/user-attachments/assets/34f25a59-1362-458c-aafa-25e13cdb2a7a" />
 
 Additionally, you'll find in Docker Desktop that database and redis services are running:
@@ -37,7 +37,7 @@ Additionally, you'll find in Docker Desktop that database and redis services are
 
 Navigate to [localhost:3446](http://localhost:3446/) in your browser and click the 🚀 button.
 
-By default a evals run will run all programming exercises in [Charles Evals](https://github.com/Newton-School/charles) repository with the Claude Sonnet 4 model and default settings. For basic configuration you can specify the LLM to use and any subset of the exercises you'd like. For advanced configuration you can import a Charles settings file which will allow you to run the evals with Charles configured any way you'd like (this includes custom modes, a footgun prompt, etc).
+By default an evals run will run all programming exercises in [Roo Code Evals](https://github.com/RooCodeInc/Roo-Code-Evals) repository with the Claude Sonnet 4 model and default settings. For basic configuration you can specify the LLM to use and any subset of the exercises you'd like. For advanced configuration you can import a Roo Code settings file which will allow you to run the evals with Roo Code configured any way you'd like (this includes custom modes, custom instructions, etc).
 
 <img width="1053" src="https://github.com/user-attachments/assets/2367eef4-6ae9-4ac2-8ee4-80f981046486" />
 
@@ -72,7 +72,7 @@ To stop an evals run early you can simply stop the "controller" container using 
 
 The evals system runs VS Code headlessly in Docker containers for consistent, reproducible environments. While this design ensures reliability, it can make debugging more challenging. For debugging purposes, you can run the system locally on macOS, though this approach is less reliable due to hardware and environment variability.
 
-To configure your MacOS system to run evals locally, execute the setup script:
+To configure your macOS system to run evals locally, execute the setup script:
 
 ```sh
 cd packages/evals && ./scripts/setup.sh
@@ -87,7 +87,7 @@ The setup script does the following:
 - Clones/updates the evals repository
 - Creates and migrates a Postgres database
 - Prompts for an OpenRouter API key to add to `.env.local`
-- Optionally builds and installs the Charles extension from source
+- Optionally builds and installs the Roo Code extension from source
 
 ## Port Configuration
 
@@ -95,7 +95,7 @@ By default, the evals system uses the following ports:
 
 - **PostgreSQL**: 5433 (external) → 5432 (internal)
 - **Redis**: 6380 (external) → 6379 (internal)
-- **Web Service**: 3446 (external) → 3000 (internal)
+- **Web Service**: 3446 (external) → 3446 (internal)
 
 These ports are configured to avoid conflicts with other services that might be running on the standard PostgreSQL (5432) and Redis (6379) ports.
 

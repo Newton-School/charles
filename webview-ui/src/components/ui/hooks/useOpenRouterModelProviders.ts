@@ -15,7 +15,8 @@ const openRouterEndpointsSchema = z.object({
 		description: z.string().optional(),
 		architecture: z
 			.object({
-				modality: z.string().nullish(),
+				input_modalities: z.array(z.string()).nullish(),
+				output_modalities: z.array(z.string()).nullish(),
 				tokenizer: z.string().nullish(),
 			})
 			.nullish(),
@@ -42,11 +43,12 @@ type OpenRouterModelProvider = ModelInfo & {
 	label: string
 }
 
-async function getOpenRouterProvidersForModel(modelId: string) {
+async function getOpenRouterProvidersForModel(modelId: string, baseUrl?: string) {
 	const models: Record<string, OpenRouterModelProvider> = {}
 
 	try {
-		const response = await axios.get(`https://openrouter.ai/api/v1/models/${modelId}/endpoints`)
+		const apiBaseUrl = baseUrl || "https://openrouter.ai/api/v1"
+		const response = await axios.get(`${apiBaseUrl}/models/${modelId}/endpoints`)
 		const result = openRouterEndpointsSchema.safeParse(response.data)
 
 		if (!result.success) {
@@ -55,6 +57,11 @@ async function getOpenRouterProvidersForModel(modelId: string) {
 		}
 
 		const { description, architecture, endpoints } = result.data.data
+
+		// Skip image generation models (models that output images)
+		if (architecture?.output_modalities?.includes("image")) {
+			return models
+		}
 
 		for (const endpoint of endpoints) {
 			const providerName = endpoint.tag ?? endpoint.name
@@ -66,7 +73,7 @@ async function getOpenRouterProvidersForModel(modelId: string) {
 			const modelInfo: OpenRouterModelProvider = {
 				maxTokens: endpoint.max_completion_tokens || endpoint.context_length,
 				contextWindow: endpoint.context_length,
-				supportsImages: architecture?.modality?.includes("image"),
+				supportsImages: architecture?.input_modalities?.includes("image") ?? false,
 				supportsPromptCache: typeof cacheReadsPrice !== "undefined",
 				cacheReadsPrice,
 				cacheWritesPrice,
@@ -94,9 +101,13 @@ type UseOpenRouterModelProvidersOptions = Omit<
 	"queryKey" | "queryFn"
 >
 
-export const useOpenRouterModelProviders = (modelId?: string, options?: UseOpenRouterModelProvidersOptions) =>
+export const useOpenRouterModelProviders = (
+	modelId?: string,
+	baseUrl?: string,
+	options?: UseOpenRouterModelProvidersOptions,
+) =>
 	useQuery<Record<string, OpenRouterModelProvider>>({
-		queryKey: ["openrouter-model-providers", modelId],
-		queryFn: () => (modelId ? getOpenRouterProvidersForModel(modelId) : {}),
+		queryKey: ["openrouter-model-providers", modelId, baseUrl],
+		queryFn: () => (modelId ? getOpenRouterProvidersForModel(modelId, baseUrl) : {}),
 		...options,
 	})

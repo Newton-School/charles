@@ -1,9 +1,9 @@
+import path from "path"
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-	webpack: (config) => {
-		config.resolve.extensionAlias = { ".js": [".ts", ".tsx", ".js", ".jsx"] }
-		return config
+	turbopack: {
+		root: path.join(__dirname, "../.."),
 	},
 	async redirects() {
 		return [
@@ -21,11 +21,16 @@ const nextConfig: NextConfig = {
 				destination: "https://roocode.com/:path*",
 				permanent: true,
 			},
-			// Redirect cloud waitlist to Notion page
+			// Redirect cloud waitlist to Notion page (kept for extension compatibility)
 			{
 				source: "/cloud-waitlist",
 				destination: "https://roo-code.notion.site/238fd1401b0a8087b858e1ad431507cf?pvs=105",
 				permanent: false,
+			},
+			{
+				source: "/provider/pricing",
+				destination: "/provider",
+				permanent: true,
 			},
 		]
 	},

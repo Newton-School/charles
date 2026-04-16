@@ -29,15 +29,34 @@ import { isPathInIgnoredDirectory } from "../../glob/ignore-utils"
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
 import { sanitizeErrorMessage } from "../shared/validation-helpers"
+import { Package } from "../../../shared/package"
 
 export class DirectoryScanner implements IDirectoryScanner {
+	private readonly batchSegmentThreshold: number
+
 	constructor(
 		private readonly embedder: IEmbedder,
 		private readonly qdrantClient: IVectorStore,
 		private readonly codeParser: ICodeParser,
 		private readonly cacheManager: CacheManager,
 		private readonly ignoreInstance: Ignore,
-	) {}
+		batchSegmentThreshold?: number,
+	) {
+		// Get the configurable batch size from VSCode settings, fallback to default
+		// If not provided in constructor, try to get from VSCode settings
+		if (batchSegmentThreshold !== undefined) {
+			this.batchSegmentThreshold = batchSegmentThreshold
+		} else {
+			try {
+				this.batchSegmentThreshold = vscode.workspace
+					.getConfiguration(Package.name)
+					.get<number>("codeIndex.embeddingBatchSize", BATCH_SEGMENT_THRESHOLD)
+			} catch {
+				// In test environment, vscode.workspace might not be available
+				this.batchSegmentThreshold = BATCH_SEGMENT_THRESHOLD
+			}
+		}
+	}
 
 	/**
 	 * Recursively scans a directory for code blocks in supported files.
@@ -52,6 +71,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 		onError?: (error: Error) => void,
 		onBlocksIndexed?: (indexedCount: number) => void,
 		onFileParsed?: (fileBlockCount: number) => void,
+		signal?: AbortSignal,
 	): Promise<{ stats: { processed: number; skipped: number }; totalBlockCount: number }> {
 		const directoryPath = directory
 		// Capture workspace context at scan start
@@ -77,7 +97,8 @@ export class DirectoryScanner implements IDirectoryScanner {
 			const relativeFilePath = generateRelativeFilePath(filePath, scanWorkspace)
 
 			// Check if file is in an ignored directory using the shared helper
-			if (isPathInIgnoredDirectory(filePath)) {
+			// Use relative path to avoid matching parent directories outside the workspace
+			if (isPathInIgnoredDirectory(relativeFilePath)) {
 				return false
 			}
 
@@ -107,6 +128,9 @@ export class DirectoryScanner implements IDirectoryScanner {
 		// Process all files in parallel with concurrency control
 		const parsePromises = supportedPaths.map((filePath) =>
 			parseLimiter(async () => {
+				// Check abort signal before processing each file
+				if (signal?.aborted) return
+
 				try {
 					// Check file size
 					const stats = await stat(filePath)
@@ -153,10 +177,17 @@ export class DirectoryScanner implements IDirectoryScanner {
 									addedBlocksFromFile = true
 
 									// Check if batch threshold is met
-									if (currentBatchBlocks.length >= BATCH_SEGMENT_THRESHOLD) {
+									// Check abort signal before dispatching batch
+									if (signal?.aborted) {
+										throw new DOMException("Indexing aborted", "AbortError")
+									}
+
+									if (currentBatchBlocks.length >= this.batchSegmentThreshold) {
 										// Wait if we've reached the maximum pending batches
 										while (pendingBatchCount >= MAX_PENDING_BATCHES) {
-											// Wait for at least one batch to complete
+											if (signal?.aborted) {
+												throw new DOMException("Indexing aborted", "AbortError")
+											}
 											await Promise.race(activeBatchPromises)
 										}
 
@@ -215,6 +246,10 @@ export class DirectoryScanner implements IDirectoryScanner {
 						await this.cacheManager.updateHash(filePath, currentFileHash)
 					}
 				} catch (error) {
+					// Re-throw AbortError — it's not a file processing error, just a user-initiated stop
+					if (error instanceof DOMException && error.name === "AbortError") {
+						throw error
+					}
 					console.error(`Error processing file ${filePath} in workspace ${scanWorkspace}:`, error)
 					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
 						error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
@@ -237,6 +272,17 @@ export class DirectoryScanner implements IDirectoryScanner {
 
 		// Wait for all parsing to complete
 		await Promise.all(parsePromises)
+
+		// Check abort signal before processing remaining batch
+		if (signal?.aborted) {
+			return {
+				stats: {
+					processed: processedCount,
+					skipped: skippedCount,
+				},
+				totalBlockCount,
+			}
+		}
 
 		// Process any remaining items in batch
 		if (currentBatchBlocks.length > 0) {
@@ -271,6 +317,17 @@ export class DirectoryScanner implements IDirectoryScanner {
 
 		// Wait for all batch processing to complete
 		await Promise.all(activeBatchPromises)
+
+		// Check abort signal before handling deleted files
+		if (signal?.aborted) {
+			return {
+				stats: {
+					processed: processedCount,
+					skipped: skippedCount,
+				},
+				totalBlockCount,
+			}
+		}
 
 		// Handle deleted files
 		const oldHashes = this.cacheManager.getAllHashes()

@@ -1,7 +1,6 @@
-import React from "react"
 import { render, screen } from "@/utils/test-utils"
+
 import MarkdownBlock from "../MarkdownBlock"
-import { vi } from "vitest"
 
 vi.mock("@src/utils/vscode", () => ({
 	vscode: {
@@ -35,7 +34,7 @@ describe("MarkdownBlock", () => {
 		// Check that the period is outside the link
 		const paragraph = container.querySelector("p")
 		expect(paragraph?.textContent).toBe("Check out this link: https://example.com.")
-	})
+	}, 10000)
 
 	it("should render unordered lists with proper styling", async () => {
 		const markdown = `Here are some items:

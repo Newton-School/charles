@@ -6,10 +6,8 @@ import { TelemetryEventName } from "@roo-code/types"
 import type { CloudUserInfo } from "@roo/cloud"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
-import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { vscode } from "@src/utils/vscode"
 import { telemetryClient } from "@src/utils/TelemetryClient"
-import { ToggleSwitch } from "@/components/ui/toggle-switch"
 
 import { History, PiggyBank, SquareArrowOutUpRightIcon } from "lucide-react"
 
@@ -22,7 +20,6 @@ type AccountViewProps = {
 
 export const AccountView = ({ userInfo, isAuthenticated, cloudApiUrl, onDone }: AccountViewProps) => {
 	const { t } = useAppTranslation()
-	const { remoteControlEnabled, setRemoteControlEnabled } = useExtensionState()
 	const wasAuthenticatedRef = useRef(false)
 
 	const rooLogoUri = (window as any).IMAGES_BASE_URI + "/roo-logo.svg"
@@ -55,12 +52,6 @@ export const AccountView = ({ userInfo, isAuthenticated, cloudApiUrl, onDone }: 
 		telemetryClient.capture(TelemetryEventName.ACCOUNT_CONNECT_CLICKED)
 		const cloudUrl = cloudApiUrl || "https://app.roocode.com"
 		vscode.postMessage({ type: "openExternal", url: cloudUrl })
-	}
-
-	const handleRemoteControlToggle = () => {
-		const newValue = !remoteControlEnabled
-		setRemoteControlEnabled(newValue)
-		vscode.postMessage({ type: "remoteControlEnabled", bool: newValue })
 	}
 
 	return (
@@ -106,25 +97,6 @@ export const AccountView = ({ userInfo, isAuthenticated, cloudApiUrl, onDone }: 
 									<span>{userInfo.organizationName}</span>
 								</div>
 							)}
-						</div>
-					)}
-
-					{userInfo?.extensionBridgeEnabled && (
-						<div className="border-t border-vscode-widget-border pt-4 mt-4">
-							<div className="flex items-center gap-3 mb-2">
-								<ToggleSwitch
-									checked={remoteControlEnabled}
-									onChange={handleRemoteControlToggle}
-									size="medium"
-									aria-label={t("account:remoteControl")}
-									data-testid="remote-control-toggle"
-								/>
-								<span className="font-medium text-vscode-foreground">{t("account:remoteControl")}</span>
-							</div>
-							<div className="text-vscode-descriptionForeground text-sm mt-1 mb-4 ml-8">
-								{t("account:remoteControlDescription")}
-							</div>
-							<hr className="border-vscode-widget-border mb-4" />
 						</div>
 					)}
 

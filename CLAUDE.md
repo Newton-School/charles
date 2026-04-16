@@ -37,16 +37,11 @@ pnpm bundle                                    # Bundle extension
 
 ### Specific Package Commands
 
-```bash
-# Extension development (in src/)
-npm run bundle                                 # Bundle extension
-npm run watch:bundle                          # Watch mode for bundle
-npm run watch:tsc                             # Watch TypeScript compilation
+````bash
 
-# Webview UI development (in webview-ui/)
-npm run dev                                   # Vite dev server
-npm run build                                # Build webview UI
-```
+Additional services:
+- **Qdrant** (vector DB for code indexing): `docker run -d -p 6333:6333 -p 6334:6334 qdrant/qdrant`
+- **Edison Proxy** (OpenAI proxy): runs on port 3500, the extension routes all LLM calls through it
 
 ## Architecture Overview
 
@@ -129,6 +124,25 @@ The extension supports extensive configuration through VS Code settings (`charle
 - MCP server configurations
 
 ## Important Development Notes
+
+### Config Server Shape
+
+The extension expects `fetchConfigFromApi()` to return:
+```json
+{
+  "apiProvider": "openai-native",
+  "model": "gpt-4o-mini",
+  "proxyUrl": "http://localhost:3500/v1",
+  "jwtToken": "<jwt>",
+  "bugInjectionPrompt": "",
+  "checkpointsDirectory": "/path/to/.charles-checkpoints",
+  "codeIndexing": {
+    "qdrantUrl": "http://localhost:6333",
+    "embedderProvider": "openai",
+    "embeddingModel": "text-embedding-3-small"
+  }
+}
+````
 
 ### Mode System
 

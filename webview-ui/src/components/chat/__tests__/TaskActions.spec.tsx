@@ -1,9 +1,11 @@
-import { render, screen, fireEvent } from "@/utils/test-utils"
-import { vi, describe, it, expect, beforeEach } from "vitest"
-import { TaskActions } from "../TaskActions"
 import type { HistoryItem } from "@roo-code/types"
+
+import { render, screen, fireEvent } from "@/utils/test-utils"
 import { vscode } from "@/utils/vscode"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { useCopyToClipboard } from "@/utils/clipboard"
+
+import { TaskActions } from "../TaskActions"
 
 // Mock scrollIntoView for JSDOM
 Object.defineProperty(Element.prototype, "scrollIntoView", {
@@ -23,8 +25,14 @@ vi.mock("@/context/ExtensionStateContext", () => ({
 	useExtensionState: vi.fn(),
 }))
 
+// Mock the useCopyToClipboard hook
+vi.mock("@/utils/clipboard", () => ({
+	useCopyToClipboard: vi.fn(),
+}))
+
 const mockPostMessage = vi.mocked(vscode.postMessage)
 const mockUseExtensionState = vi.mocked(useExtensionState)
+const mockUseCopyToClipboard = vi.mocked(useCopyToClipboard)
 
 // Mock react-i18next
 vi.mock("react-i18next", () => ({
@@ -41,12 +49,14 @@ vi.mock("react-i18next", () => ({
 				"chat:task.connectToCloud": "Connect to Cloud",
 				"chat:task.connectToCloudDescription": "Sign in to Roo Code Cloud to share tasks",
 				"chat:task.sharingDisabledByOrganization": "Sharing disabled by organization",
-				"account:cloudBenefitsTitle": "Connect to Roo Code Cloud",
-				"account:cloudBenefitsSubtitle": "Sign in to Roo Code Cloud to share tasks",
-				"account:cloudBenefitHistory": "Access your task history from anywhere",
-				"account:cloudBenefitSharing": "Share tasks with your team",
-				"account:cloudBenefitMetrics": "Track usage and costs",
-				"account:connect": "Connect",
+				"chat:task.openApiHistory": "Open API History",
+				"chat:task.openUiHistory": "Open UI History",
+				"cloud:cloudBenefitsTitle": "Connect to Roo Code Cloud",
+				"cloud:cloudBenefitHistory": "Access your task history from anywhere",
+				"cloud:cloudBenefitSharing": "Share tasks with your team",
+				"cloud:cloudBenefitMetrics": "Track usage and costs",
+				"cloud:connect": "Connect",
+				"history:copyPrompt": "Copy",
 			}
 			return translations[key] || key
 		},
@@ -78,11 +88,16 @@ describe("TaskActions", () => {
 		vi.clearAllMocks()
 		mockUseExtensionState.mockReturnValue({
 			sharingEnabled: true,
+			publicSharingEnabled: true,
 			cloudIsAuthenticated: true,
 			cloudUserInfo: {
 				organizationName: "Test Organization",
 			},
 		} as any)
+		mockUseCopyToClipboard.mockReturnValue({
+			copyWithFeedback: vi.fn(),
+			showCopyFeedback: false,
+		})
 	})
 
 	describe("Share Button Visibility", () => {
@@ -163,6 +178,7 @@ describe("TaskActions", () => {
 		it("does not show organization option when user is not in an organization", () => {
 			mockUseExtensionState.mockReturnValue({
 				sharingEnabled: true,
+				publicSharingEnabled: true,
 				cloudIsAuthenticated: true,
 				cloudUserInfo: {
 					// No organizationName property
@@ -196,7 +212,6 @@ describe("TaskActions", () => {
 			fireEvent.click(shareButton)
 
 			expect(screen.getByText("Connect to Roo Code Cloud")).toBeInTheDocument()
-			expect(screen.getByText("Sign in to Roo Code Cloud to share tasks")).toBeInTheDocument()
 			expect(screen.getByText("Connect")).toBeInTheDocument()
 		})
 
@@ -259,9 +274,10 @@ describe("TaskActions", () => {
 			// Verify popover is not open initially
 			expect(screen.queryByText("Share with Organization")).not.toBeInTheDocument()
 
-			// Simulate user becoming authenticated (e.g., from AccountView)
+			// Simulate user becoming authenticated (e.g., from CloudView)
 			mockUseExtensionState.mockReturnValue({
 				sharingEnabled: true,
+				publicSharingEnabled: true,
 				cloudIsAuthenticated: true,
 				cloudUserInfo: {
 					organizationName: "Test Organization",
@@ -300,6 +316,7 @@ describe("TaskActions", () => {
 			// Simulate user becoming authenticated after clicking connect from share button
 			mockUseExtensionState.mockReturnValue({
 				sharingEnabled: true,
+				publicSharingEnabled: true,
 				cloudIsAuthenticated: true,
 				cloudUserInfo: {
 					organizationName: "Test Organization",
@@ -347,33 +364,39 @@ describe("TaskActions", () => {
 			const deleteButton = screen.queryByLabelText("Delete Task (Shift + Click to skip confirmation)")
 			expect(deleteButton).not.toBeInTheDocument()
 		})
+
+		it("shows check icon when showCopyFeedback is true", () => {
+			// First render with showCopyFeedback: false (default)
+			const { rerender } = render(<TaskActions item={mockItem} buttonsDisabled={false} />)
+
+			// Verify copy icon is shown initially
+			const copyButton = screen.getByLabelText("Copy")
+			expect(copyButton).toBeInTheDocument()
+			expect(copyButton.querySelector("svg.lucide-copy")).toBeInTheDocument()
+			expect(copyButton.querySelector("svg.lucide-check")).not.toBeInTheDocument()
+
+			// Mock showCopyFeedback: true to simulate successful copy
+			mockUseCopyToClipboard.mockReturnValue({
+				copyWithFeedback: vi.fn(),
+				showCopyFeedback: true,
+			})
+
+			rerender(<TaskActions item={mockItem} buttonsDisabled={false} />)
+
+			// Verify check icon is shown after successful copy
+			expect(copyButton.querySelector("svg.lucide-check")).toBeInTheDocument()
+			expect(copyButton.querySelector("svg.lucide-copy")).not.toBeInTheDocument()
+		})
 	})
 
 	describe("Button States", () => {
-		it("keeps share, export, and copy buttons enabled but disables delete button when buttonsDisabled is true", () => {
-			render(<TaskActions item={mockItem} buttonsDisabled={true} />)
-
-			// Find buttons by their labels/test IDs
-			const shareButton = screen.getByTestId("share-button")
-			const exportButton = screen.getByLabelText("Export task history")
-			const copyButton = screen.getByLabelText("history:copyPrompt")
-			const deleteButton = screen.getByLabelText("Delete Task (Shift + Click to skip confirmation)")
-
-			// Share, export, and copy buttons should be enabled regardless of buttonsDisabled
-			expect(shareButton).not.toBeDisabled()
-			expect(exportButton).not.toBeDisabled()
-			expect(copyButton).not.toBeDisabled()
-			// Delete button should respect buttonsDisabled
-			expect(deleteButton).toBeDisabled()
-		})
-
 		it("share, export, and copy buttons are always enabled while delete button respects buttonsDisabled state", () => {
 			// Test with buttonsDisabled = false
 			const { rerender } = render(<TaskActions item={mockItem} buttonsDisabled={false} />)
 
 			let shareButton = screen.getByTestId("share-button")
 			let exportButton = screen.getByLabelText("Export task history")
-			let copyButton = screen.getByLabelText("history:copyPrompt")
+			let copyButton = screen.getByLabelText("Copy")
 			let deleteButton = screen.getByLabelText("Delete Task (Shift + Click to skip confirmation)")
 
 			expect(shareButton).not.toBeDisabled()
@@ -386,7 +409,7 @@ describe("TaskActions", () => {
 
 			shareButton = screen.getByTestId("share-button")
 			exportButton = screen.getByLabelText("Export task history")
-			copyButton = screen.getByLabelText("history:copyPrompt")
+			copyButton = screen.getByLabelText("Copy")
 			deleteButton = screen.getByLabelText("Delete Task (Shift + Click to skip confirmation)")
 
 			// Share, export, and copy remain enabled
@@ -395,6 +418,111 @@ describe("TaskActions", () => {
 			expect(copyButton).not.toBeDisabled()
 			// Delete button is disabled
 			expect(deleteButton).toBeDisabled()
+		})
+	})
+
+	describe("Debug Buttons", () => {
+		it("does not render debug buttons when debug is false", () => {
+			mockUseExtensionState.mockReturnValue({
+				sharingEnabled: true,
+				cloudIsAuthenticated: true,
+				cloudUserInfo: { organizationName: "Test Organization" },
+				debug: false,
+			} as any)
+
+			render(<TaskActions item={mockItem} buttonsDisabled={false} />)
+
+			const apiHistoryButton = screen.queryByLabelText("Open API History")
+			const uiHistoryButton = screen.queryByLabelText("Open UI History")
+
+			expect(apiHistoryButton).not.toBeInTheDocument()
+			expect(uiHistoryButton).not.toBeInTheDocument()
+		})
+
+		it("does not render debug buttons when debug is undefined", () => {
+			mockUseExtensionState.mockReturnValue({
+				sharingEnabled: true,
+				cloudIsAuthenticated: true,
+				cloudUserInfo: { organizationName: "Test Organization" },
+			} as any)
+
+			render(<TaskActions item={mockItem} buttonsDisabled={false} />)
+
+			const apiHistoryButton = screen.queryByLabelText("Open API History")
+			const uiHistoryButton = screen.queryByLabelText("Open UI History")
+
+			expect(apiHistoryButton).not.toBeInTheDocument()
+			expect(uiHistoryButton).not.toBeInTheDocument()
+		})
+
+		it("renders debug buttons when debug is true and item has id", () => {
+			mockUseExtensionState.mockReturnValue({
+				sharingEnabled: true,
+				cloudIsAuthenticated: true,
+				cloudUserInfo: { organizationName: "Test Organization" },
+				debug: true,
+			} as any)
+
+			render(<TaskActions item={mockItem} buttonsDisabled={false} />)
+
+			const apiHistoryButton = screen.getByLabelText("Open API History")
+			const uiHistoryButton = screen.getByLabelText("Open UI History")
+
+			expect(apiHistoryButton).toBeInTheDocument()
+			expect(uiHistoryButton).toBeInTheDocument()
+		})
+
+		it("does not render debug buttons when debug is true but item has no id", () => {
+			mockUseExtensionState.mockReturnValue({
+				sharingEnabled: true,
+				cloudIsAuthenticated: true,
+				cloudUserInfo: { organizationName: "Test Organization" },
+				debug: true,
+			} as any)
+
+			render(<TaskActions item={undefined} buttonsDisabled={false} />)
+
+			const apiHistoryButton = screen.queryByLabelText("Open API History")
+			const uiHistoryButton = screen.queryByLabelText("Open UI History")
+
+			expect(apiHistoryButton).not.toBeInTheDocument()
+			expect(uiHistoryButton).not.toBeInTheDocument()
+		})
+
+		it("sends openDebugApiHistory message when Open API History button is clicked", () => {
+			mockUseExtensionState.mockReturnValue({
+				sharingEnabled: true,
+				cloudIsAuthenticated: true,
+				cloudUserInfo: { organizationName: "Test Organization" },
+				debug: true,
+			} as any)
+
+			render(<TaskActions item={mockItem} buttonsDisabled={false} />)
+
+			const apiHistoryButton = screen.getByLabelText("Open API History")
+			fireEvent.click(apiHistoryButton)
+
+			expect(mockPostMessage).toHaveBeenCalledWith({
+				type: "openDebugApiHistory",
+			})
+		})
+
+		it("sends openDebugUiHistory message when Open UI History button is clicked", () => {
+			mockUseExtensionState.mockReturnValue({
+				sharingEnabled: true,
+				cloudIsAuthenticated: true,
+				cloudUserInfo: { organizationName: "Test Organization" },
+				debug: true,
+			} as any)
+
+			render(<TaskActions item={mockItem} buttonsDisabled={false} />)
+
+			const uiHistoryButton = screen.getByLabelText("Open UI History")
+			fireEvent.click(uiHistoryButton)
+
+			expect(mockPostMessage).toHaveBeenCalledWith({
+				type: "openDebugUiHistory",
+			})
 		})
 	})
 })
