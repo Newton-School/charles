@@ -16,8 +16,6 @@ phases:
   build:
     commands:
       - pnpm install
-      - pnpm build
-      - cd src
       - pnpm vsix
       
   post_build:
