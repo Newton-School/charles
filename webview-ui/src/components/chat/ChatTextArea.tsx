@@ -1,7 +1,7 @@
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 import DynamicTextArea from "react-textarea-autosize"
-import { VolumeX, Image, WandSparkles, SendHorizontal, X, ListEnd, Square } from "lucide-react"
+import { VolumeX, WandSparkles, SendHorizontal, X, ListEnd, Square } from "lucide-react"
 
 import type { ExtensionMessage } from "@roo-code/types"
 
@@ -29,7 +29,6 @@ import { ModeSelector } from "./ModeSelector"
 import { AutoApproveDropdown } from "./AutoApproveDropdown"
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import ContextMenu from "./ContextMenu"
-import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { usePromptHistory } from "./hooks/usePromptHistory"
 
 interface ChatTextAreaProps {
@@ -66,7 +65,7 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			selectedImages,
 			setSelectedImages,
 			onSend,
-			onSelectImages,
+			onSelectImages: _onSelectImages,
 			shouldDisableImages,
 			onHeightChange,
 			mode,
@@ -1098,31 +1097,7 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							/>
 
 							<div className="absolute bottom-2 right-1 z-30 flex flex-col items-center gap-0">
-								<StandardTooltip content={t("chat:addImages")}>
-									<button
-										aria-label={t("chat:addImages")}
-										disabled={shouldDisableImages}
-										onClick={!shouldDisableImages ? onSelectImages : undefined}
-										className={cn(
-											"relative inline-flex items-center justify-center",
-											"bg-transparent border-none p-1.5",
-											"rounded-md min-w-[28px] min-h-[28px]",
-											"text-vscode-descriptionForeground hover:text-vscode-foreground",
-											"transition-all duration-1000",
-											"cursor-pointer",
-											!shouldDisableImages
-												? "opacity-50 hover:opacity-100 delay-750 pointer-events-auto"
-												: "opacity-0 pointer-events-none duration-200 delay-0",
-											!shouldDisableImages &&
-												"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
-											"focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder",
-											!shouldDisableImages && "active:bg-[rgba(255,255,255,0.1)]",
-											shouldDisableImages &&
-												"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
-										)}>
-										<Image className="w-4 h-4" />
-									</button>
-								</StandardTooltip>
+								{/* Image upload button disabled */}
 								{isEditMode ? (
 									<StandardTooltip content={t("chat:cancel.title")}>
 										<button
@@ -1309,7 +1284,7 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								</button>
 							</StandardTooltip>
 						)}
-						{!isEditMode ? <IndexingStatusBadge /> : null}
+						{/* IndexingStatusBadge disabled */}
 						{/* CloudAccountSwitcher disabled */}
 					</div>
 				</div>
